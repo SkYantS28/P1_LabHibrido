@@ -25,12 +25,14 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
       Alert.alert("Erro", "Preencha todos os campos.");
       return;
     }
 
-    if (!/\S+@\S+\.\S+/.test(email)) {
+    if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
       Alert.alert("Erro", "Digite um e-mail válido.");
       return;
     }
@@ -38,16 +40,22 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const success = await login(email, password);
+      const success = await login(normalizedEmail, password);
 
       if (!success) {
-        Alert.alert("Erro", "Não foi possível realizar o login.");
+        Alert.alert(
+          "Erro",
+          "E-mail ou senha incorretos."
+        );
         return;
       }
 
       router.replace("/");
     } catch (error) {
-      Alert.alert("Erro", "Ocorreu um erro ao realizar o login.");
+      Alert.alert(
+        "Erro",
+        "Ocorreu um erro ao realizar o login."
+      );
     } finally {
       setLoading(false);
     }

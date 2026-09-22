@@ -27,18 +27,29 @@ export default function Cadastro() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (
+      !normalizedName ||
+      !normalizedEmail ||
+      !password ||
+      !confirmPassword
+    ) {
       Alert.alert("Erro", "Preencha todos os campos.");
       return;
     }
 
-    if (!/\S+@\S+\.\S+/.test(email)) {
+    if (!/\S+@\S+\.\S+/.test(normalizedEmail)) {
       Alert.alert("Erro", "Digite um e-mail válido.");
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres.");
+    if (password.length < 8) {
+      Alert.alert(
+        "Erro",
+        "A senha deve ter pelo menos 8 caracteres."
+      );
       return;
     }
 
@@ -50,16 +61,24 @@ export default function Cadastro() {
     setLoading(true);
 
     try {
-      const success = await register(
-        name.trim(),
-        email.trim().toLowerCase(),
+      const result = await register(
+        normalizedName,
+        normalizedEmail,
         password
       );
 
-      if (!success) {
+      if (result === "duplicate") {
+        Alert.alert(
+          "E-mail já cadastrado",
+          "Já existe uma conta com este e-mail. Faça login para continuar."
+        );
+        return;
+      }
+
+      if (result === "error") {
         Alert.alert(
           "Erro",
-          "Este e-mail já está cadastrado ou não foi possível criar a conta."
+          "Não foi possível criar a conta. Tente novamente."
         );
         return;
       }
@@ -91,7 +110,9 @@ export default function Cadastro() {
     >
       <View style={styles.logoContainer}>
         <Text style={styles.logo}>VENETO</Text>
-        <Text style={styles.subtitle}>Restaurante e Pizzaria</Text>
+        <Text style={styles.subtitle}>
+          Restaurante e Pizzaria
+        </Text>
       </View>
 
       <View style={styles.content}>

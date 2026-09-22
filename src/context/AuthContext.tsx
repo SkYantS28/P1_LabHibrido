@@ -13,6 +13,11 @@ type User = {
   password: string;
 };
 
+type RegisterResult =
+  | "success"
+  | "duplicate"
+  | "error";
+
 type AuthContextData = {
   user: Omit<User, "password"> | null;
   loading: boolean;
@@ -21,7 +26,7 @@ type AuthContextData = {
     name: string,
     email: string,
     password: string
-  ) => Promise<boolean>;
+  ) => Promise<RegisterResult>;
   logout: () => Promise<void>;
 };
 
@@ -58,7 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(JSON.parse(storedCurrentUser));
         }
       } catch (error) {
-        console.log("Erro ao carregar dados de autenticação:", error);
+        console.log(
+          "Erro ao carregar dados de autenticação:",
+          error
+        );
       } finally {
         setLoading(false);
       }
@@ -71,11 +79,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: string,
     email: string,
     password: string
-  ) => {
+  ): Promise<RegisterResult> => {
+    const normalizedName = name.trim();
     const normalizedEmail = email.trim().toLowerCase();
 
-    if (!name.trim() || !normalizedEmail || !password) {
-      return false;
+    if (!normalizedName || !normalizedEmail || !password) {
+      return "error";
     }
 
     const emailAlreadyExists = registeredUsers.some(
@@ -84,11 +93,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     if (emailAlreadyExists) {
-      return false;
+      return "duplicate";
     }
 
     const newUser: User = {
-      name: name.trim(),
+      name: normalizedName,
       email: normalizedEmail,
       password,
     };
@@ -103,10 +112,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setRegisteredUsers(updatedUsers);
 
-      return true;
+      return "success";
     } catch (error) {
       console.log("Erro ao salvar usuário:", error);
-      return false;
+      return "error";
     }
   };
 
