@@ -46,20 +46,20 @@ const borders = [
 export default function Produto() {
     const router = useRouter();
 
-    const { name, description, price } = useLocalSearchParams<{
-        name: string;
-        description: string;
-        price: string;
-    }>();
+    const { name, description, price, category } =
+        useLocalSearchParams<{
+            name: string;
+            description: string;
+            price: string;
+            category: string;
+        }>();
 
     const { addItem } = useCart();
     const [selectedSize, setSelectedSize] = useState("35 cm");
     const [selectedBorder, setSelectedBorder] = useState("Sem Borda");
     const [observation, setObservation] = useState("");
     const [quantity, setQuantity] = useState(1);
-
-    const sizePrice =
-        sizes.find((size) => size.name === selectedSize)?.price ?? 0;
+    const isPizza = category === "PIZZAS";
 
     const borderPrice =
         borders.find((border) => border.name === selectedBorder)?.price ?? 0;
@@ -71,8 +71,9 @@ export default function Produto() {
             .replace(",", ".")
     );
 
-const selectedPrice =
-    basePrice + (selectedSize === "45 cm" ? 10 : 0) + borderPrice;
+    const selectedPrice = isPizza
+        ? basePrice + (selectedSize === "45 cm" ? 10 : 0) + borderPrice
+        : basePrice;
 
     const total = selectedPrice * quantity;
 
@@ -126,81 +127,85 @@ const selectedPrice =
                     Escolha sua preferência
                 </Text>
 
-                <Text style={styles.required}>
-                    Tamanho *
-                </Text>
+                {isPizza && (
+                <>
+                    <Text style={styles.required}>
+                        Tamanho *
+                    </Text>
 
-                <View style={styles.options}>
-                    {sizes.map((size) => {
-                        const selected = selectedSize === size.name;
+                    <View style={styles.options}>
+                        {sizes.map((size) => {
+                            const selected = selectedSize === size.name;
 
-                        return (
-                            <TouchableOpacity
-                                key={size.name}
-                                style={[
-                                styles.option,
-                                selected && styles.optionSelected,
-                                ]}
-                                onPress={() => setSelectedSize(size.name)}
-                            >
-                                <View
+                            return (
+                                <TouchableOpacity
+                                    key={size.name}
                                     style={[
-                                        styles.radio,
-                                        selected && styles.radioSelected,
+                                    styles.option,
+                                    selected && styles.optionSelected,
                                     ]}
-                                />
+                                    onPress={() => setSelectedSize(size.name)}
+                                >
+                                    <View
+                                        style={[
+                                            styles.radio,
+                                            selected && styles.radioSelected,
+                                        ]}
+                                    />
 
-                                <Text style={styles.optionName}>
-                                    {size.name}
-                                </Text>
+                                    <Text style={styles.optionName}>
+                                        {size.name}
+                                    </Text>
 
-                                <Text style={styles.optionPrice}>
-                                    R$ {size.price.toFixed(2).replace(".", ",")}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
+                                    <Text style={styles.optionPrice}>
+                                        R$ {size.price.toFixed(2).replace(".", ",")}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
 
-                <Text style={styles.required}>
-                    Borda
-                </Text>
+                    <Text style={styles.required}>
+                        Borda
+                    </Text>
 
-                <View style={styles.options}>
-                    {borders.map((border) => {
-                        const selected = selectedBorder === border.name;
+                    <View style={styles.options}>
+                        {borders.map((border) => {
+                            const selected = selectedBorder === border.name;
 
-                        return (
-                            <TouchableOpacity
-                                key={border.name}
-                                style={[
-                                styles.option,
-                                selected && styles.optionSelected,
-                                ]}
-                                onPress={() => setSelectedBorder(border.name)}
-                            >
-                                <View
+                            return (
+                                <TouchableOpacity
+                                    key={border.name}
                                     style={[
-                                        styles.radio,
-                                        selected && styles.radioSelected,
+                                    styles.option,
+                                    selected && styles.optionSelected,
                                     ]}
-                                />
+                                    onPress={() => setSelectedBorder(border.name)}
+                                >
+                                    <View
+                                        style={[
+                                            styles.radio,
+                                            selected && styles.radioSelected,
+                                        ]}
+                                    />
 
-                                <Text style={styles.optionName}>
-                                    {border.name}
-                                </Text>
+                                    <Text style={styles.optionName}>
+                                        {border.name}
+                                    </Text>
 
-                                <Text style={styles.optionPrice}>
-                                    {border.price === 0
-                                        ? "Grátis"
-                                        : `+ R$ ${border.price
-                                            .toFixed(2)
-                                            .replace(".", ",")}`}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
+                                    <Text style={styles.optionPrice}>
+                                        {border.price === 0
+                                            ? "Grátis"
+                                            : `+ R$ ${border.price
+                                                .toFixed(2)
+                                                .replace(".", ",")}`}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </>
+                )}      
 
                 <View style={styles.observationHeader}>
                     <Text style={styles.required}>

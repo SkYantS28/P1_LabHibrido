@@ -284,6 +284,7 @@ export default function Index() {
                     name: product.name,
                     description: product.description,
                     price: product.price,
+                    category: selectedCategory,
                   },
                 })
               }
