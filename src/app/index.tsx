@@ -9,6 +9,7 @@ import {
 import { useRouter } from "expo-router";
 
 import Header from "../components/Header";
+import ProductCard from "../components/ProductCard";
 import { COLORS } from "../constants/colors";
 
 const categories = [
@@ -161,25 +162,13 @@ export default function Index() {
 
         <View style={styles.products}>
           {products.map((product) => (
-            <TouchableOpacity
+            <ProductCard
               key={product.name}
-              style={styles.productCard}
+              name={product.name}
+              description={product.description}
+              price={product.price}
               onPress={() => router.push("/produto")}
-            >
-              <View style={styles.productImage}>
-                <Text style={styles.pizzaEmoji}>🍕</Text>
-              </View>
-
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>{product.name}</Text>
-
-                <Text style={styles.productDescription}>
-                  {product.description}
-                </Text>
-
-                <Text style={styles.productPrice}>{product.price}</Text>
-              </View>
-            </TouchableOpacity>
+            />
           ))}
         </View>
       </ScrollView>
@@ -337,53 +326,5 @@ const styles = StyleSheet.create({
 
   products: {
     gap: 12,
-  },
-
-  productCard: {
-    flexDirection: "row",
-    backgroundColor: COLORS.white,
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-
-  productImage: {
-    width: 95,
-    height: 95,
-    borderRadius: 12,
-    backgroundColor: "#EFE6D9",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  pizzaEmoji: {
-    fontSize: 45,
-  },
-
-  productInfo: {
-    flex: 1,
-    marginLeft: 14,
-    justifyContent: "center",
-  },
-
-  productName: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: COLORS.text,
-  },
-
-  productDescription: {
-    marginTop: 5,
-    fontSize: 12,
-    lineHeight: 17,
-    color: COLORS.textSecondary,
-  },
-
-  productPrice: {
-    marginTop: 8,
-    fontSize: 15,
-    fontWeight: "800",
-    color: COLORS.primary,
-  },
+  }
 });
