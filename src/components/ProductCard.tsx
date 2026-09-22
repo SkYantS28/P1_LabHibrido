@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS } from "../constants/colors";
+import { useFavorites } from "../context/FavoritesContext";
 
 type ProductCardProps = {
     name: string;
@@ -16,6 +17,8 @@ export default function ProductCard({
     category,
     onPress,
 }: ProductCardProps) {
+    const { isFavorite, toggleFavorite } = useFavorites();
+
     const icons: Record<string, string> = {
         PIZZAS: "🍕",
         ESFIHAS: "🥟",
@@ -26,29 +29,63 @@ export default function ProductCard({
     };
 
     const icon = icons[category] || "🍴";
+    const productId = `${name}-${category}`;
+    const favorite = isFavorite(productId);
 
     return (
-        <TouchableOpacity style={styles.card} onPress={onPress}>
-            <View style={styles.image}>
-                <Text style={styles.pizza}>
-                    {icon}
-                </Text>
-            </View>
+        <View style={styles.card}>
+            <TouchableOpacity
+                style={styles.productArea}
+                onPress={onPress}
+                activeOpacity={0.8}
+            >
+                <View style={styles.image}>
+                    <Text style={styles.pizza}>
+                        {icon}
+                    </Text>
+                </View>
 
-            <View style={styles.info}>
-                <Text style={styles.name}>
-                    {name}
-                </Text>
+                <View style={styles.info}>
+                    <Text style={styles.name}>
+                        {name}
+                    </Text>
 
-                <Text style={styles.description} numberOfLines={2}>
-                    {description}
-                </Text>
+                    <Text
+                        style={styles.description}
+                        numberOfLines={2}
+                    >
+                        {description}
+                    </Text>
 
-                <Text style={styles.price}>
-                    {price}
+                    <Text style={styles.price}>
+                        {price}
+                    </Text>
+                </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={() =>
+                    toggleFavorite({
+                        id: productId,
+                        name,
+                        description,
+                        price,
+                        category,
+                    })
+                }
+                activeOpacity={0.7}
+            >
+                <Text
+                    style={[
+                        styles.favoriteIcon,
+                        !favorite && styles.favoriteIconEmpty,
+                    ]}
+                >
+                    {favorite ? "♥" : "♡"}
                 </Text>
-            </View>
-        </TouchableOpacity>
+            </TouchableOpacity>
+        </View>
     );
 }
 
@@ -60,6 +97,12 @@ const styles = StyleSheet.create({
         padding: 12,
         borderWidth: 1,
         borderColor: COLORS.border,
+        position: "relative",
+    },
+
+    productArea: {
+        flex: 1,
+        flexDirection: "row",
     },
 
     image: {
@@ -79,6 +122,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 14,
         justifyContent: "center",
+        paddingRight: 35,
     },
 
     name: {
@@ -99,5 +143,24 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "800",
         color: COLORS.primary,
+    },
+
+    favoriteButton: {
+        position: "absolute",
+        top: 10,
+        right: 10,
+        width: 30,
+        height: 40,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    favoriteIcon: {
+        fontSize: 19,
+        color: COLORS.primary,
+    },
+
+    favoriteIconEmpty: {
+        fontSize: 28,
     },
 });

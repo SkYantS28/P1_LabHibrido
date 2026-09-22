@@ -194,8 +194,9 @@ export default function Index() {
       >
         
         <Header
-          onProfilePress={() => router.push("/perfil")}
-          onCartPress={() => router.push("/carrinho")}
+            onFavoritesPress={() => router.push("/favoritos")}
+            onCartPress={() => router.push("/carrinho")}
+            onProfilePress={() => router.push("/perfil")}
         />
 
         <TouchableOpacity

@@ -60,6 +60,7 @@ export default function Produto() {
     const [observation, setObservation] = useState("");
     const [quantity, setQuantity] = useState(1);
     const isPizza = category === "PIZZAS";
+    const productId = `${name}-${category}`;
 
     const borderPrice =
         borders.find((border) => border.name === selectedBorder)?.price ?? 0;
@@ -113,9 +114,11 @@ export default function Produto() {
                     </Text>
                 </View>
 
-                <Text style={styles.title}>
-                    {name}
-                </Text>
+                <View style={styles.titleRow}>
+                    <Text style={styles.title}>
+                        {name}
+                    </Text>
+                </View>
 
                 <Text style={styles.description}>
                     {description}
@@ -449,5 +452,12 @@ const styles = StyleSheet.create({
         color: COLORS.white,
         fontSize: 17,
         fontWeight: "800",
+    },
+
+    titleRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginTop: 20,
     },
 });
