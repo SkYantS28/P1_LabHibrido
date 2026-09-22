@@ -1,4 +1,11 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type Address = {
   id: string;
@@ -9,18 +16,48 @@ export type Address = {
 
 type AddressContextData = {
   selectedAddress: Address | null;
-  selectAddress: (address: Address) => void;
+  selectAddress: (address: Address) => Promise<void>;
 };
 
 const AddressContext = createContext<AddressContextData | undefined>(
   undefined
 );
 
-export function AddressProvider({ children }: { children: ReactNode }) {
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+const ADDRESS_STORAGE_KEY = "@veneto_selected_address";
 
-  const selectAddress = (address: Address) => {
-    setSelectedAddress(address);
+export function AddressProvider({ children }: { children: ReactNode }) {
+  const [selectedAddress, setSelectedAddress] =
+    useState<Address | null>(null);
+
+  useEffect(() => {
+    const loadAddress = async () => {
+      try {
+        const storedAddress = await AsyncStorage.getItem(
+          ADDRESS_STORAGE_KEY
+        );
+
+        if (storedAddress) {
+          setSelectedAddress(JSON.parse(storedAddress));
+        }
+      } catch (error) {
+        console.log("Erro ao carregar endereço:", error);
+      }
+    };
+
+    loadAddress();
+  }, []);
+
+  const selectAddress = async (address: Address) => {
+    try {
+      await AsyncStorage.setItem(
+        ADDRESS_STORAGE_KEY,
+        JSON.stringify(address)
+      );
+
+      setSelectedAddress(address);
+    } catch (error) {
+      console.log("Erro ao salvar endereço:", error);
+    }
   };
 
   return (
@@ -39,7 +76,9 @@ export function useAddress() {
   const context = useContext(AddressContext);
 
   if (!context) {
-    throw new Error("useAddress deve ser usado dentro de AddressProvider");
+    throw new Error(
+      "useAddress deve ser usado dentro de AddressProvider"
+    );
   }
 
   return context;

@@ -53,8 +53,8 @@ export default function Endereco() {
                         <TouchableOpacity
                             key={item.id}
                             style={styles.addressCard}
-                            onPress={() => {
-                                selectAddress(item);
+                            onPress={async () => {
+                                await selectAddress(item);
                                 router.back();
                             }}
                         >
