@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 
 import Header from "../components/Header";
 import ProductCard from "../components/ProductCard";
@@ -21,41 +22,145 @@ const categories = [
   "BEBIDAS",
 ];
 
-const products = [
-  {
-    name: "4 Queijos",
-    description: "Mussarela, provolone, parmesão e catupiry.",
-    price: "R$ 49,90",
-  },
-  {
-    name: "Alho",
-    description: "Mussarela, alho e temperos especiais.",
-    price: "R$ 42,90",
-  },
-  {
-    name: "Atum",
-    description: "Mussarela, atum, cebola e tomate.",
-    price: "R$ 47,90",
-  },
-  {
-    name: "Bacon",
-    description: "Mussarela, bacon e tomate.",
-    price: "R$ 46,90",
-  },
-  {
-    name: "Calabresa",
-    description: "Mussarela, calabresa e cebola.",
-    price: "R$ 44,90",
-  },
-  {
-    name: "Calabresa com Ovos",
-    description: "Calabresa, ovos, cebola e mussarela.",
-    price: "R$ 48,90",
-  },
-];
+const productsByCategory = {
+  PIZZAS: [
+    {
+      name: "4 Queijos",
+      description: "Mussarela, provolone, parmesão e catupiry.",
+      price: "R$ 49,90",
+    },
+    {
+      name: "Alho",
+      description: "Mussarela, alho e temperos especiais.",
+      price: "R$ 42,90",
+    },
+    {
+      name: "Atum",
+      description: "Mussarela, atum, cebola e tomate.",
+      price: "R$ 47,90",
+    },
+    {
+      name: "Bacon",
+      description: "Mussarela, bacon e tomate.",
+      price: "R$ 46,90",
+    },
+    {
+      name: "Calabresa",
+      description: "Mussarela, calabresa e cebola.",
+      price: "R$ 44,90",
+    },
+    {
+      name: "Calabresa com Ovos",
+      description: "Calabresa, ovos, cebola e mussarela.",
+      price: "R$ 48,90",
+    },
+  ],
+
+  ESFIHAS: [
+    {
+      name: "Carne",
+      description: "Carne temperada, cebola e tomate.",
+      price: "R$ 8,90",
+    },
+    {
+      name: "Queijo",
+      description: "Mussarela e temperos especiais.",
+      price: "R$ 8,90",
+    },
+    {
+      name: "Frango com Catupiry",
+      description: "Frango desfiado e catupiry.",
+      price: "R$ 9,90",
+    },
+    {
+      name: "Calabresa",
+      description: "Calabresa, cebola e mussarela.",
+      price: "R$ 9,90",
+    },
+  ],
+
+  PANQUECAS: [
+    {
+      name: "Panqueca de Carne",
+      description: "Carne moída ao molho de tomate e queijo.",
+      price: "R$ 29,90",
+    },
+    {
+      name: "Panqueca de Frango",
+      description: "Frango desfiado, queijo e molho especial.",
+      price: "R$ 29,90",
+    },
+    {
+      name: "Panqueca de Queijo",
+      description: "Mussarela, molho de tomate e parmesão.",
+      price: "R$ 27,90",
+    },
+  ],
+
+  MASSAS: [
+    {
+      name: "Espaguete à Bolonhesa",
+      description: "Espaguete com molho de carne e parmesão.",
+      price: "R$ 34,90",
+    },
+    {
+      name: "Fettuccine Alfredo",
+      description: "Massa ao molho cremoso e parmesão.",
+      price: "R$ 36,90",
+    },
+    {
+      name: "Lasanha à Bolonhesa",
+      description: "Massa, carne, molho de tomate e queijo.",
+      price: "R$ 39,90",
+    },
+  ],
+
+  CALDOS: [
+    {
+      name: "Caldo de Aipim",
+      description: "Caldo cremoso de aipim com carne desfiada.",
+      price: "R$ 18,90",
+    },
+    {
+      name: "Caldo Verde",
+      description: "Batata, couve e temperos especiais.",
+      price: "R$ 17,90",
+    },
+    {
+      name: "Caldo de Feijão",
+      description: "Feijão preto temperado com ervas.",
+      price: "R$ 17,90",
+    },
+  ],
+
+  BEBIDAS: [
+    {
+      name: "Coca-Cola",
+      description: "Refrigerante Coca-Cola 350 ml.",
+      price: "R$ 6,00",
+    },
+    {
+      name: "Guaraná",
+      description: "Refrigerante Guaraná 350 ml.",
+      price: "R$ 6,00",
+    },
+    {
+      name: "Água Mineral",
+      description: "Água mineral sem gás 500 ml.",
+      price: "R$ 4,00",
+    },
+    {
+      name: "Suco de Laranja",
+      description: "Suco natural de laranja.",
+      price: "R$ 9,90",
+    },
+  ],
+};
 
 export default function Index() {
   const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<keyof typeof productsByCategory>("PIZZAS");
+  const products = productsByCategory[selectedCategory];
 
   return (
     <View style={styles.container}>
@@ -136,28 +241,33 @@ export default function Index() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categories}
         >
-          {categories.map((category, index) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.category,
-                index === 0 && styles.categoryActive,
-              ]}
-            >
-              <Text
+          {categories.map((category) => {
+            const selected = selectedCategory === category;
+
+            return (
+              <TouchableOpacity
+                key={category}
                 style={[
-                  styles.categoryText,
-                  index === 0 && styles.categoryTextActive,
+                  styles.category,
+                  selected && styles.categoryActive,
                 ]}
+                onPress={() => setSelectedCategory(category as keyof typeof productsByCategory)}
               >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.categoryText,
+                    selected && styles.categoryTextActive,
+                  ]}
+                >
+                  {category}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         <Text style={styles.sectionTitle}>
-          Pizzas
+          {selectedCategory}
         </Text>
 
         <View style={styles.products}>
