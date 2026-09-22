@@ -1,15 +1,17 @@
 {
   "expo": {
-    "name": "p1_labhibrido",
-    "slug": "p1_labhibrido",
+    "name": "Veneto",
+    "slug": "veneto",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "p1labhibrido",
+    "scheme": "veneto",
     "userInterfaceStyle": "automatic",
+
     "ios": {
       "icon": "./assets/expo.icon"
     },
+
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -19,21 +21,24 @@
       },
       "predictiveBackGestureEnabled": false
     },
+
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#7A1F1F",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
       ]
     ],
+
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
