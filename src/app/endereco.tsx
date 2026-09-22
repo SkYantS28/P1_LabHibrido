@@ -1,14 +1,14 @@
 import { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -17,360 +17,494 @@ import { COLORS } from "../constants/colors";
 import { useAddress } from "../context/AddressContext";
 
 export default function Endereco() {
-    const router = useRouter();
+  const router = useRouter();
 
-    const {
-        addresses,
-        selectAddress,
-        addAddress,
-    } = useAddress();
+  const {
+    addresses,
+    selectAddress,
+    addAddress,
+    updateAddress,
+    deleteAddress,
+  } = useAddress();
 
-    const [showForm, setShowForm] = useState(false);
-    const [title, setTitle] = useState("");
-    const [address, setAddress] = useState("");
-    const [neighborhood, setNeighborhood] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(
+    null
+  );
 
-    const handleAddAddress = async () => {
-        if (
-            !title.trim() ||
-            !address.trim() ||
-            !neighborhood.trim()
-        ) {
-            Alert.alert(
+  const [title, setTitle] = useState("");
+  const [address, setAddress] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
+
+  const handleAddAddress = async () => {
+    if (
+      !title.trim() ||
+      !address.trim() ||
+      !neighborhood.trim()
+    ) {
+      Alert.alert(
+        "Erro",
+        "Preencha todos os campos."
+      );
+      return;
+    }
+
+    const success = await addAddress(
+      title,
+      address,
+      neighborhood
+    );
+
+    if (!success) {
+      Alert.alert(
+        "Erro",
+        "Não foi possível adicionar o endereço."
+      );
+      return;
+    }
+
+    clearForm();
+
+    Alert.alert(
+      "Sucesso",
+      "Endereço adicionado com sucesso."
+    );
+  };
+
+  const handleEditAddress = async () => {
+    if (!editingId) {
+      return;
+    }
+
+    if (
+      !title.trim() ||
+      !address.trim() ||
+      !neighborhood.trim()
+    ) {
+      Alert.alert(
+        "Erro",
+        "Preencha todos os campos."
+      );
+      return;
+    }
+
+    const success = await updateAddress(
+      editingId,
+      title,
+      address,
+      neighborhood
+    );
+
+    if (!success) {
+      Alert.alert(
+        "Erro",
+        "Não foi possível editar o endereço."
+      );
+      return;
+    }
+
+    clearForm();
+
+    Alert.alert(
+      "Sucesso",
+      "Endereço atualizado com sucesso."
+    );
+  };
+
+  const handleDeleteAddress = (id: string) => {
+    Alert.alert(
+      "Excluir endereço",
+      "Tem certeza que deseja excluir este endereço?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            const success = await deleteAddress(id);
+
+            if (!success) {
+              Alert.alert(
                 "Erro",
-                "Preencha todos os campos."
-            );
-            return;
-        }
+                "Não foi possível excluir o endereço."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
 
-        const success = await addAddress(
-            title,
-            address,
-            neighborhood
-        );
+  const startEditing = (item: {
+    id: string;
+    title: string;
+    address: string;
+    neighborhood: string;
+  }) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setAddress(item.address);
+    setNeighborhood(item.neighborhood);
+    setShowForm(true);
+  };
 
-        if (!success) {
-            Alert.alert(
-                "Erro",
-                "Não foi possível adicionar o endereço."
-            );
-            return;
-        }
+  const clearForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setTitle("");
+    setAddress("");
+    setNeighborhood("");
+  };
 
-        setTitle("");
-        setAddress("");
-        setNeighborhood("");
-        setShowForm(false);
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior="padding"
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Header />
 
-        Alert.alert(
-            "Sucesso",
-            "Endereço adicionado com sucesso."
-        );
-    };
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.back}>
+            ‹ Voltar
+          </Text>
+        </TouchableOpacity>
 
-    return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior="padding"
-        >
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}
-                keyboardShouldPersistTaps="handled"
+        <Text style={styles.title}>
+          Escolha um endereço
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Onde você deseja receber seu pedido?
+        </Text>
+
+        <View style={styles.addresses}>
+          {addresses.map((item) => (
+            <View
+              key={item.id}
+              style={styles.addressCard}
             >
-                <Header />
+              <TouchableOpacity
+                style={styles.addressMain}
+                onPress={async () => {
+                  await selectAddress(item);
+                  router.back();
+                }}
+              >
+                <Text style={styles.icon}>
+                  📍
+                </Text>
 
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Text style={styles.back}>
-                        ‹ Voltar
-                    </Text>
+                <View style={styles.addressInfo}>
+                  <Text style={styles.addressTitle}>
+                    {item.title}
+                  </Text>
+
+                  <Text style={styles.addressText}>
+                    {item.address}
+                  </Text>
+
+                  <Text style={styles.neighborhood}>
+                    {item.neighborhood}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.actions}>
+                <TouchableOpacity
+                  onPress={() => startEditing(item)}
+                >
+                  <Text style={styles.editText}>
+                    Editar
+                  </Text>
                 </TouchableOpacity>
 
-                <Text style={styles.title}>
-                    Escolha um endereço
-                </Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    handleDeleteAddress(item.id)
+                  }
+                >
+                  <Text style={styles.deleteText}>
+                    Excluir
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
 
-                <Text style={styles.subtitle}>
-                    Onde você deseja receber seu pedido?
-                </Text>
+        {!showForm && (
+          <TouchableOpacity
+            style={styles.newAddress}
+            onPress={() => setShowForm(true)}
+          >
+            <Text style={styles.newAddressText}>
+              + Adicionar novo endereço
+            </Text>
+          </TouchableOpacity>
+        )}
 
-                <View style={styles.addresses}>
-                    {addresses.map((item) => (
-                        <TouchableOpacity
-                            key={item.id}
-                            style={styles.addressCard}
-                            onPress={async () => {
-                                await selectAddress(item);
-                                router.back();
-                            }}
-                        >
-                            <Text style={styles.icon}>
-                                📍
-                            </Text>
+        {showForm && (
+          <View style={styles.form}>
+            <Text style={styles.formTitle}>
+              {editingId
+                ? "Editar endereço"
+                : "Novo endereço"}
+            </Text>
 
-                            <View style={styles.addressInfo}>
-                                <Text style={styles.addressTitle}>
-                                    {item.title}
-                                </Text>
+            <Text style={styles.label}>
+              Nome do endereço
+            </Text>
 
-                                <Text style={styles.addressText}>
-                                    {item.address}
-                                </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex.: Casa"
+              placeholderTextColor={
+                COLORS.textSecondary
+              }
+              value={title}
+              onChangeText={setTitle}
+            />
 
-                                <Text style={styles.neighborhood}>
-                                    {item.neighborhood}
-                                </Text>
-                            </View>
+            <Text style={styles.label}>
+              Endereço
+            </Text>
 
-                            <Text style={styles.arrow}>
-                                ›
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex.: Rua das Flores, 123"
+              placeholderTextColor={
+                COLORS.textSecondary
+              }
+              value={address}
+              onChangeText={setAddress}
+            />
 
-                {!showForm && (
-                    <TouchableOpacity
-                        style={styles.newAddress}
-                        onPress={() => setShowForm(true)}
-                    >
-                        <Text style={styles.newAddressText}>
-                            + Adicionar novo endereço
-                        </Text>
-                    </TouchableOpacity>
-                )}
+            <Text style={styles.label}>
+              Bairro
+            </Text>
 
-                {showForm && (
-                    <View style={styles.form}>
-                        <Text style={styles.formTitle}>
-                            Novo endereço
-                        </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex.: Centro"
+              placeholderTextColor={
+                COLORS.textSecondary
+              }
+              value={neighborhood}
+              onChangeText={setNeighborhood}
+            />
 
-                        <Text style={styles.label}>
-                            Nome do endereço
-                        </Text>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={
+                editingId
+                  ? handleEditAddress
+                  : handleAddAddress
+              }
+            >
+              <Text style={styles.saveButtonText}>
+                {editingId
+                  ? "Salvar alterações"
+                  : "Salvar endereço"}
+              </Text>
+            </TouchableOpacity>
 
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Ex.: Casa"
-                            placeholderTextColor={
-                                COLORS.textSecondary
-                            }
-                            value={title}
-                            onChangeText={setTitle}
-                        />
-
-                        <Text style={styles.label}>
-                            Endereço
-                        </Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Ex.: Rua das Flores, 123"
-                            placeholderTextColor={
-                                COLORS.textSecondary
-                            }
-                            value={address}
-                            onChangeText={setAddress}
-                        />
-
-                        <Text style={styles.label}>
-                            Bairro
-                        </Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Ex.: Centro"
-                            placeholderTextColor={
-                                COLORS.textSecondary
-                            }
-                            value={neighborhood}
-                            onChangeText={setNeighborhood}
-                        />
-
-                        <TouchableOpacity
-                            style={styles.saveButton}
-                            onPress={handleAddAddress}
-                        >
-                            <Text style={styles.saveButtonText}>
-                                Salvar endereço
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.cancelButton}
-                            onPress={() => {
-                                setShowForm(false);
-                                setTitle("");
-                                setAddress("");
-                                setNeighborhood("");
-                            }}
-                        >
-                            <Text style={styles.cancelButtonText}>
-                                Cancelar
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-            </ScrollView>
-        </KeyboardAvoidingView>
-    );
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={clearForm}
+            >
+              <Text style={styles.cancelButtonText}>
+                Cancelar
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
 
-    content: {
-        padding: 24,
-        paddingBottom: 40,
-    },
+  content: {
+    padding: 24,
+    paddingBottom: 40,
+  },
 
-    back: {
-        marginTop: 20,
-        fontSize: 16,
-        fontWeight: "600",
-        color: COLORS.primary,
-    },
+  back: {
+    marginTop: 20,
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.primary,
+  },
 
-    title: {
-        marginTop: 28,
-        fontSize: 26,
-        fontWeight: "800",
-        color: COLORS.text,
-    },
+  title: {
+    marginTop: 28,
+    fontSize: 26,
+    fontWeight: "800",
+    color: COLORS.text,
+  },
 
-    subtitle: {
-        marginTop: 8,
-        fontSize: 14,
-        color: COLORS.textSecondary,
-    },
+  subtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
 
-    addresses: {
-        marginTop: 24,
-        gap: 12,
-    },
+  addresses: {
+    marginTop: 24,
+    gap: 12,
+  },
 
-    addressCard: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: COLORS.white,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 14,
-        padding: 16,
-    },
+  addressCard: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 16,
+  },
 
-    icon: {
-        fontSize: 24,
-        marginRight: 14,
-    },
+  addressMain: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
 
-    addressInfo: {
-        flex: 1,
-    },
+  icon: {
+    fontSize: 24,
+    marginRight: 14,
+  },
 
-    addressTitle: {
-        fontSize: 16,
-        fontWeight: "800",
-        color: COLORS.text,
-    },
+  addressInfo: {
+    flex: 1,
+  },
 
-    addressText: {
-        marginTop: 4,
-        fontSize: 14,
-        color: COLORS.text,
-    },
+  addressTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: COLORS.text,
+  },
 
-    neighborhood: {
-        marginTop: 2,
-        fontSize: 12,
-        color: COLORS.textSecondary,
-    },
+  addressText: {
+    marginTop: 4,
+    fontSize: 14,
+    color: COLORS.text,
+  },
 
-    arrow: {
-        fontSize: 26,
-        color: COLORS.textSecondary,
-    },
+  neighborhood: {
+    marginTop: 2,
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
 
-    newAddress: {
-        marginTop: 20,
-        height: 52,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.primary,
-        alignItems: "center",
-        justifyContent: "center",
-    },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 20,
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
 
-    newAddressText: {
-        fontSize: 15,
-        fontWeight: "700",
-        color: COLORS.primary,
-    },
+  editText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
 
-    form: {
-        marginTop: 24,
-        backgroundColor: COLORS.white,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 14,
-        padding: 18,
-    },
+  deleteText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#B3261E",
+  },
 
-    formTitle: {
-        fontSize: 19,
-        fontWeight: "800",
-        color: COLORS.text,
-        marginBottom: 20,
-    },
+  newAddress: {
+    marginTop: 20,
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-    label: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: COLORS.text,
-        marginBottom: 6,
-    },
+  newAddressText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
 
-    input: {
-        height: 50,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        borderRadius: 10,
-        paddingHorizontal: 14,
-        fontSize: 15,
-        marginBottom: 16,
-        backgroundColor: COLORS.background,
-        color: COLORS.text,
-    },
+  form: {
+    marginTop: 24,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 18,
+  },
 
-    saveButton: {
-        height: 52,
-        borderRadius: 12,
-        backgroundColor: COLORS.primary,
-        alignItems: "center",
-        justifyContent: "center",
-        marginTop: 4,
-    },
+  formTitle: {
+    fontSize: 19,
+    fontWeight: "800",
+    color: COLORS.text,
+    marginBottom: 20,
+  },
 
-    saveButtonText: {
-        color: COLORS.white,
-        fontSize: 16,
-        fontWeight: "800",
-    },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginBottom: 6,
+  },
 
-    cancelButton: {
-        height: 48,
-        alignItems: "center",
-        justifyContent: "center",
-        marginTop: 8,
-    },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    marginBottom: 16,
+    backgroundColor: COLORS.background,
+    color: COLORS.text,
+  },
 
-    cancelButtonText: {
-        color: COLORS.primary,
-        fontSize: 15,
-        fontWeight: "700",
-    },
+  saveButton: {
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
+  },
+
+  saveButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+
+  cancelButton: {
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+  },
+
+  cancelButtonText: {
+    color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: "700",
+  },
 });

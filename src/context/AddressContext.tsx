@@ -23,6 +23,13 @@ type AddressContextData = {
     address: string,
     neighborhood: string
   ) => Promise<boolean>;
+  updateAddress: (
+    id: string,
+    title: string,
+    address: string,
+    neighborhood: string
+  ) => Promise<boolean>;
+  deleteAddress: (id: string) => Promise<boolean>;
 };
 
 const AddressContext = createContext<AddressContextData | undefined>(
@@ -151,6 +158,99 @@ export function AddressProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateAddress = async (
+    id: string,
+    title: string,
+    address: string,
+    neighborhood: string
+  ) => {
+    const normalizedTitle = title.trim();
+    const normalizedAddress = address.trim();
+    const normalizedNeighborhood = neighborhood.trim();
+
+    if (
+      !normalizedTitle ||
+      !normalizedAddress ||
+      !normalizedNeighborhood
+    ) {
+      return false;
+    }
+
+    const updatedAddresses = addresses.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            title: normalizedTitle,
+            address: normalizedAddress,
+            neighborhood: normalizedNeighborhood,
+          }
+        : item
+    );
+
+    const updatedAddress = updatedAddresses.find(
+      (item) => item.id === id
+    );
+
+    if (!updatedAddress) {
+      return false;
+    }
+
+    try {
+      await AsyncStorage.setItem(
+        ADDRESSES_STORAGE_KEY,
+        JSON.stringify(updatedAddresses)
+      );
+
+      setAddresses(updatedAddresses);
+
+      if (selectedAddress?.id === id) {
+        await AsyncStorage.setItem(
+          SELECTED_ADDRESS_STORAGE_KEY,
+          JSON.stringify(updatedAddress)
+        );
+
+        setSelectedAddress(updatedAddress);
+      }
+
+      return true;
+    } catch (error) {
+      console.log("Erro ao editar endereço:", error);
+      return false;
+    }
+  };
+
+  const deleteAddress = async (id: string) => {
+    const updatedAddresses = addresses.filter(
+      (item) => item.id !== id
+    );
+
+    if (updatedAddresses.length === addresses.length) {
+      return false;
+    }
+
+    try {
+      await AsyncStorage.setItem(
+        ADDRESSES_STORAGE_KEY,
+        JSON.stringify(updatedAddresses)
+      );
+
+      setAddresses(updatedAddresses);
+
+      if (selectedAddress?.id === id) {
+        await AsyncStorage.removeItem(
+          SELECTED_ADDRESS_STORAGE_KEY
+        );
+
+        setSelectedAddress(null);
+      }
+
+      return true;
+    } catch (error) {
+      console.log("Erro ao excluir endereço:", error);
+      return false;
+    }
+  };
+
   return (
     <AddressContext.Provider
       value={{
@@ -158,6 +258,8 @@ export function AddressProvider({ children }: { children: ReactNode }) {
         selectedAddress,
         selectAddress,
         addAddress,
+        updateAddress,
+        deleteAddress,
       }}
     >
       {children}
