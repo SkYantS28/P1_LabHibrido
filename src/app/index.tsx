@@ -159,8 +159,17 @@ const productsByCategory = {
 
 export default function Index() {
   const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<keyof typeof productsByCategory>("PIZZAS");
-  const products = productsByCategory[selectedCategory];
+  const [selectedCategory, setSelectedCategory] =
+    useState<keyof typeof productsByCategory>("PIZZAS");
+  const [search, setSearch] = useState("");
+  const products = productsByCategory[selectedCategory].filter((product) => {
+    const searchText = search.toLowerCase();
+    
+    return (
+      product.name.toLowerCase().includes(searchText) ||
+      product.description.toLowerCase().includes(searchText)
+    );
+  });
 
   return (
     <View style={styles.container}>
@@ -193,6 +202,8 @@ export default function Index() {
             style={styles.search}
             placeholder="Buscar no cardápio"
             placeholderTextColor={COLORS.textSecondary}
+            value={search}
+            onChangeText={setSearch}
           />
         </View>
 
