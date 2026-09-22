@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-    Alert,
     ScrollView,
     StyleSheet,
     Text,
@@ -60,10 +59,7 @@ export default function Produto() {
     const total = (sizePrice + borderPrice) * quantity;
 
     const handleAddToCart = () => {
-        Alert.alert(
-        "Produto adicionado",
-        "A pizza foi adicionada ao seu carrinho."
-        );
+        router.push("/carrinho");
     };
 
     return (
