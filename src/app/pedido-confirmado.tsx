@@ -17,8 +17,8 @@ export default function PedidoConfirmado() {
 
     const orderNumber = Date.now().toString().slice(-6);
 
-    const handleFinish = () => {
-        addOrder({
+    const handleFinish = async () => {
+        await addOrder({
             items: items.map((item) => ({
                 name: item.name,
                 quantity: item.quantity,

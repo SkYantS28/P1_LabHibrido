@@ -2,8 +2,10 @@ import {
   createContext,
   ReactNode,
   useContext,
+  useEffect,
   useState,
 } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type OrderItem = {
   name: string;
@@ -20,27 +22,57 @@ export type Order = {
 
 type OrdersContextData = {
   orders: Order[];
-  addOrder: (order: Omit<Order, "id" | "date">) => void;
+  addOrder: (order: Omit<Order, "id" | "date">) => Promise<void>;
 };
 
 const OrdersContext = createContext<OrdersContextData | undefined>(
   undefined
 );
 
+const ORDERS_STORAGE_KEY = "@veneto_orders";
+
 export function OrdersProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
 
-  const addOrder = (order: Omit<Order, "id" | "date">) => {
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const storedOrders = await AsyncStorage.getItem(
+          ORDERS_STORAGE_KEY
+        );
+
+        if (storedOrders) {
+          setOrders(JSON.parse(storedOrders));
+        }
+      } catch (error) {
+        console.log("Erro ao carregar pedidos:", error);
+      }
+    };
+
+    loadOrders();
+  }, []);
+
+  const addOrder = async (
+    order: Omit<Order, "id" | "date">
+  ) => {
     const newOrder: Order = {
       ...order,
       id: Date.now().toString(),
       date: new Date().toLocaleString("pt-BR"),
     };
 
-    setOrders((currentOrders) => [
-      newOrder,
-      ...currentOrders,
-    ]);
+    const updatedOrders = [newOrder, ...orders];
+
+    try {
+      await AsyncStorage.setItem(
+        ORDERS_STORAGE_KEY,
+        JSON.stringify(updatedOrders)
+      );
+
+      setOrders(updatedOrders);
+    } catch (error) {
+      console.log("Erro ao salvar pedido:", error);
+    }
   };
 
   return (
