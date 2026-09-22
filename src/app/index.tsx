@@ -277,7 +277,16 @@ export default function Index() {
               name={product.name}
               description={product.description}
               price={product.price}
-              onPress={() => router.push("/produto")}
+              onPress={() =>
+                router.push({
+                  pathname: "/produto",
+                  params: {
+                    name: product.name,
+                    description: product.description,
+                    price: product.price,
+                  },
+                })
+              }
             />
           ))}
         </View>

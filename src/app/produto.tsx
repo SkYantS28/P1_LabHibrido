@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import Header from "../components/Header";
 import { useCart } from "../context/CartContext";
@@ -46,6 +46,12 @@ const borders = [
 export default function Produto() {
     const router = useRouter();
 
+    const { name, description, price } = useLocalSearchParams<{
+        name: string;
+        description: string;
+        price: string;
+    }>();
+
     const { addItem } = useCart();
     const [selectedSize, setSelectedSize] = useState("35 cm");
     const [selectedBorder, setSelectedBorder] = useState("Sem Borda");
@@ -57,19 +63,29 @@ export default function Produto() {
 
     const borderPrice =
         borders.find((border) => border.name === selectedBorder)?.price ?? 0;
+    
+    const basePrice = Number(
+        (price || "0")
+            .replace("R$", "")
+            .replace(".", "")
+            .replace(",", ".")
+    );
 
-    const total = (sizePrice + borderPrice) * quantity;
+const selectedPrice =
+    basePrice + (selectedSize === "45 cm" ? 10 : 0) + borderPrice;
+
+    const total = selectedPrice * quantity;
 
     const handleAddToCart = () => {
         for (let i = 0; i < quantity; i++) {
             addItem({
-            id: `4-queijos-${selectedSize}-${selectedBorder}-${observation}`,
-            name: "4 Queijos",
-            description: "Mussarela, provolone, parmesão e catupiry.",
-            size: selectedSize,
-            border: selectedBorder,
-            observation,
-            price: sizePrice + borderPrice,
+                id: `${name}-${selectedSize}-${selectedBorder}-${observation}`,
+                name: name || "Produto",
+                description: description || "",
+                size: selectedSize,
+                border: selectedBorder,
+                observation,
+                price: selectedPrice,
             });
         }
 
@@ -97,11 +113,11 @@ export default function Produto() {
                 </View>
 
                 <Text style={styles.title}>
-                    4 Queijos
+                    {name}
                 </Text>
 
                 <Text style={styles.description}>
-                    Mussarela, provolone, parmesão e catupiry.
+                    {description}
                 </Text>
 
                 <View style={styles.divider} />
