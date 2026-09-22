@@ -10,6 +10,7 @@ import {
 import { useRouter } from "expo-router";
 
 import Header from "../components/Header";
+import { useCart } from "../context/CartContext";
 import { COLORS } from "../constants/colors";
 
 const sizes = [
@@ -45,6 +46,7 @@ const borders = [
 export default function Produto() {
     const router = useRouter();
 
+    const { addItem } = useCart();
     const [selectedSize, setSelectedSize] = useState("35 cm");
     const [selectedBorder, setSelectedBorder] = useState("Sem Borda");
     const [observation, setObservation] = useState("");
@@ -59,6 +61,18 @@ export default function Produto() {
     const total = (sizePrice + borderPrice) * quantity;
 
     const handleAddToCart = () => {
+        for (let i = 0; i < quantity; i++) {
+            addItem({
+            id: `4-queijos-${selectedSize}-${selectedBorder}-${observation}`,
+            name: "4 Queijos",
+            description: "Mussarela, provolone, parmesão e catupiry.",
+            size: selectedSize,
+            border: selectedBorder,
+            observation,
+            price: sizePrice + borderPrice,
+            });
+        }
+
         router.push("/carrinho");
     };
 

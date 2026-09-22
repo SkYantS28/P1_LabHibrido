@@ -9,15 +9,27 @@ import { useRouter } from "expo-router";
 
 import Header from "../components/Header";
 import { COLORS } from "../constants/colors";
+import { useCart } from "../context/CartContext";
 
 export default function Carrinho() {
     const router = useRouter();
 
+    const {
+        items,
+        increaseQuantity,
+        decreaseQuantity,
+        removeItem,
+        subtotal,
+    } = useCart();
+
+    const deliveryFee = items.length > 0 ? 5 : 0;
+    const total = subtotal + deliveryFee;
+
     return (
         <View style={styles.container}>
             <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.content}
             >
                 <Header />
 
@@ -32,98 +44,134 @@ export default function Carrinho() {
                 </Text>
 
                 <Text style={styles.subtitle}>
-                    Confira os itens antes de finalizar seu pedido.
+                    {items.length === 0
+                    ? "Seu carrinho está vazio."
+                    : `${items.length} item(ns) no carrinho`}
                 </Text>
 
-                <View style={styles.item}>
-                    <View style={styles.image}>
-                        <Text style={styles.pizza}>
-                            🍕
-                        </Text>
-                    </View>
+                {items.map((item) => (
+                    <View style={styles.item} key={item.id}>
+                        <View style={styles.image}>
+                            <Text style={styles.pizza}>
+                                🍕
+                            </Text>
+                        </View>
 
-                    <View style={styles.itemInfo}>
-                        <Text style={styles.itemName}>
-                            4 Queijos
-                        </Text>
-
-                        <Text style={styles.itemDetails}>
-                            35 cm • Sem Borda
-                        </Text>
-
-                        <View style={styles.quantityRow}>
-                            <TouchableOpacity style={styles.quantityButton}>
-                                <Text style={styles.quantityButtonText}>
-                                    −
-                                </Text>
-                            </TouchableOpacity>
-
-                            <Text style={styles.quantity}>
-                                1
+                        <View style={styles.itemInfo}>
+                            <Text style={styles.itemName}>
+                                {item.name}
                             </Text>
 
-                            <TouchableOpacity style={styles.quantityButton}>
-                                <Text style={styles.quantityButtonText}>
-                                    +
+                            <Text style={styles.itemDetails}>
+                                {item.size} • {item.border}
+                            </Text>
+
+                            {item.observation ? (
+                                <Text style={styles.observation}>
+                                    Obs.: {item.observation}
                                 </Text>
-                            </TouchableOpacity>
+                            ) : null}
+
+                            <View style={styles.quantityRow}>
+                                <TouchableOpacity
+                                    style={styles.quantityButton}
+                                    onPress={() => decreaseQuantity(item.id)}
+                                >
+                                    <Text style={styles.quantityButtonText}>
+                                        −
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <Text style={styles.quantity}>
+                                    {item.quantity}
+                                </Text>
+
+                                <TouchableOpacity
+                                    style={styles.quantityButton}
+                                    onPress={() => increaseQuantity(item.id)}
+                                >
+                                    <Text style={styles.quantityButtonText}>
+                                        +
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={() => removeItem(item.id)}
+                                >
+                                    <Text style={styles.remove}>
+                                        Remover
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
 
-                    <Text style={styles.price}>
-                        R$ 49,90
-                    </Text>
-                </View>
-
-                <TouchableOpacity style={styles.continueButton} onPress={() => router.push("/")}>
-                    <Text style={styles.continueText}>
-                        Continuar comprando
-                    </Text>
-                </TouchableOpacity>
-
-                <View style={styles.summary}>
-                    <Text style={styles.summaryTitle}>
-                        Resumo do pedido
-                    </Text>
-
-                    <View style={styles.row}>
-                        <Text style={styles.label}>
-                            Subtotal
-                        </Text>
-
-                        <Text style={styles.value}>
-                            R$ 49,90
+                        <Text style={styles.price}>
+                            R$ {(item.price * item.quantity)
+                            .toFixed(2)
+                            .replace(".", ",")}
                         </Text>
                     </View>
+                ))}
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>
-                            Taxa de entrega
-                        </Text>
+                {items.length > 0 && (
+                    <>
+                        <TouchableOpacity
+                            style={styles.continueButton}
+                            onPress={() => router.push("/")}
+                        >
+                            <Text style={styles.continueText}>
+                                Continuar comprando
+                            </Text>
+                        </TouchableOpacity>
 
-                        <Text style={styles.value}>
-                            R$ 5,00
-                        </Text>
-                    </View>
+                        <View style={styles.summary}>
+                            <Text style={styles.summaryTitle}>
+                                Resumo do pedido
+                            </Text>
 
-                    <View style={styles.divider} />
+                            <View style={styles.row}>
+                                <Text style={styles.label}>
+                                    Subtotal
+                                </Text>
 
-                    <View style={styles.row}>
-                        <Text style={styles.totalLabel}>
-                            Total
-                        </Text>
+                                <Text style={styles.value}>
+                                    R$ {subtotal.toFixed(2).replace(".", ",")}
+                                </Text>
+                            </View>
 
-                        <Text style={styles.total}>
-                            R$ 54,90
-                        </Text>
-                    </View>
-                </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>
+                                    Taxa de entrega
+                                </Text>
+                                
+                                <Text style={styles.value}>
+                                    R$ {deliveryFee.toFixed(2).replace(".", ",")}
+                                </Text>
+                            </View>
 
-                <TouchableOpacity style={styles.checkoutButton}>
-                    <Text style={styles.checkoutText}>
-                        Finalizar pedido
-                    </Text>
-                </TouchableOpacity>
+                            <View style={styles.divider} />
+
+                            <View style={styles.row}>
+                                <Text style={styles.totalLabel}>
+                                    Total
+                                </Text>
+                                
+                                <Text style={styles.total}>
+                                    R$ {total.toFixed(2).replace(".", ",")}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.checkoutButton}
+                            onPress={() => router.push("/pedido-confirmado")}
+                        >
+                            <Text style={styles.checkoutText}>
+                                Finalizar pedido
+                            </Text>
+                        </TouchableOpacity>
+                    </>
+                )}
             </ScrollView>
         </View>
     );
@@ -151,7 +199,7 @@ const styles = StyleSheet.create({
         marginTop: 22,
         fontSize: 28,
         fontWeight: "800",
-        color: COLORS.text,
+    color: COLORS.text,
     },
 
     subtitle: {
@@ -168,7 +216,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.border,
         borderRadius: 14,
         padding: 12,
-        marginTop: 24,
+        marginTop: 20,
     },
 
     image: {
@@ -201,6 +249,12 @@ const styles = StyleSheet.create({
         color: COLORS.textSecondary,
     },
 
+    observation: {
+        marginTop: 3,
+        fontSize: 11,
+        color: COLORS.textSecondary,
+    },
+
     quantityRow: {
         flexDirection: "row",
         alignItems: "center",
@@ -227,6 +281,13 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontWeight: "700",
         color: COLORS.text,
+    },
+
+    remove: {
+        marginLeft: 10,
+        fontSize: 11,
+        fontWeight: "600",
+        color: COLORS.primary,
     },
 
     price: {
