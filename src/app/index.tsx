@@ -188,7 +188,11 @@ export default function Index() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        <Header onProfilePress={() => router.push("/perfil")} />
+        
+        <Header
+          onProfilePress={() => router.push("/perfil")}
+          onCartPress={() => router.push("/carrinho")}
+        />
 
         <TouchableOpacity
           style={styles.address}
