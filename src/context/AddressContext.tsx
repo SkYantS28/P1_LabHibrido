@@ -15,56 +15,149 @@ export type Address = {
 };
 
 type AddressContextData = {
+  addresses: Address[];
   selectedAddress: Address | null;
   selectAddress: (address: Address) => Promise<void>;
+  addAddress: (
+    title: string,
+    address: string,
+    neighborhood: string
+  ) => Promise<boolean>;
 };
 
 const AddressContext = createContext<AddressContextData | undefined>(
   undefined
 );
 
-const ADDRESS_STORAGE_KEY = "@veneto_selected_address";
+const ADDRESSES_STORAGE_KEY = "@veneto_addresses";
+const SELECTED_ADDRESS_STORAGE_KEY = "@veneto_selected_address";
+
+const defaultAddresses: Address[] = [
+  {
+    id: "1",
+    title: "Casa",
+    address: "Rua Exemplo, 123",
+    neighborhood: "Centro",
+  },
+  {
+    id: "2",
+    title: "Trabalho",
+    address: "Av. Principal, 456",
+    neighborhood: "Centro",
+  },
+];
 
 export function AddressProvider({ children }: { children: ReactNode }) {
+  const [addresses, setAddresses] =
+    useState<Address[]>(defaultAddresses);
+
   const [selectedAddress, setSelectedAddress] =
     useState<Address | null>(null);
 
   useEffect(() => {
-    const loadAddress = async () => {
+    const loadAddressData = async () => {
       try {
-        const storedAddress = await AsyncStorage.getItem(
-          ADDRESS_STORAGE_KEY
+        const storedAddresses = await AsyncStorage.getItem(
+          ADDRESSES_STORAGE_KEY
         );
 
-        if (storedAddress) {
-          setSelectedAddress(JSON.parse(storedAddress));
+        const storedSelectedAddress =
+          await AsyncStorage.getItem(
+            SELECTED_ADDRESS_STORAGE_KEY
+          );
+
+        if (storedAddresses) {
+          setAddresses(JSON.parse(storedAddresses));
+        } else {
+          await AsyncStorage.setItem(
+            ADDRESSES_STORAGE_KEY,
+            JSON.stringify(defaultAddresses)
+          );
+        }
+
+        if (storedSelectedAddress) {
+          setSelectedAddress(
+            JSON.parse(storedSelectedAddress)
+          );
         }
       } catch (error) {
-        console.log("Erro ao carregar endereço:", error);
+        console.log(
+          "Erro ao carregar dados de endereço:",
+          error
+        );
       }
     };
 
-    loadAddress();
+    loadAddressData();
   }, []);
 
   const selectAddress = async (address: Address) => {
     try {
       await AsyncStorage.setItem(
-        ADDRESS_STORAGE_KEY,
+        SELECTED_ADDRESS_STORAGE_KEY,
         JSON.stringify(address)
       );
 
       setSelectedAddress(address);
     } catch (error) {
-      console.log("Erro ao salvar endereço:", error);
+      console.log(
+        "Erro ao salvar endereço selecionado:",
+        error
+      );
+    }
+  };
+
+  const addAddress = async (
+    title: string,
+    address: string,
+    neighborhood: string
+  ) => {
+    const normalizedTitle = title.trim();
+    const normalizedAddress = address.trim();
+    const normalizedNeighborhood = neighborhood.trim();
+
+    if (
+      !normalizedTitle ||
+      !normalizedAddress ||
+      !normalizedNeighborhood
+    ) {
+      return false;
+    }
+
+    const newAddress: Address = {
+      id: Date.now().toString(),
+      title: normalizedTitle,
+      address: normalizedAddress,
+      neighborhood: normalizedNeighborhood,
+    };
+
+    const updatedAddresses = [
+      ...addresses,
+      newAddress,
+    ];
+
+    try {
+      await AsyncStorage.setItem(
+        ADDRESSES_STORAGE_KEY,
+        JSON.stringify(updatedAddresses)
+      );
+
+      setAddresses(updatedAddresses);
+
+      return true;
+    } catch (error) {
+      console.log("Erro ao adicionar endereço:", error);
+      return false;
     }
   };
 
   return (
     <AddressContext.Provider
       value={{
+        addresses,
         selectedAddress,
         selectAddress,
+        addAddress,
       }}
     >
       {children}
