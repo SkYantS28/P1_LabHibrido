@@ -106,7 +106,7 @@ export default function Cadastro() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior="padding"
     >
       <View style={styles.logoContainer}>
         <Text style={styles.logo}>VENETO</Text>
