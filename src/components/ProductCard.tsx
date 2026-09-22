@@ -5,6 +5,7 @@ type ProductCardProps = {
     name: string;
     description: string;
     price: string;
+    category: string;
     onPress: () => void;
 };
 
@@ -12,13 +13,25 @@ export default function ProductCard({
     name,
     description,
     price,
+    category,
     onPress,
 }: ProductCardProps) {
+    const icons: Record<string, string> = {
+        PIZZAS: "🍕",
+        ESFIHAS: "🥟",
+        PANQUECAS: "🥞",
+        MASSAS: "🍝",
+        CALDOS: "🍲",
+        BEBIDAS: "🥤",
+    };
+
+    const icon = icons[category] || "🍴";
+
     return (
         <TouchableOpacity style={styles.card} onPress={onPress}>
             <View style={styles.image}>
                 <Text style={styles.pizza}>
-                    🍕
+                    {icon}
                 </Text>
             </View>
 
