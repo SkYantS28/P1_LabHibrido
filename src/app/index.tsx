@@ -12,6 +12,7 @@ import { useState } from "react";
 import Header from "../components/Header";
 import ProductCard from "../components/ProductCard";
 import { COLORS } from "../constants/colors";
+import { useAddress } from "../context/AddressContext";
 
 const categories = [
   "PIZZAS",
@@ -159,6 +160,7 @@ const productsByCategory = {
 
 export default function Index() {
   const router = useRouter();
+  const { selectedAddress } = useAddress();
   const [selectedCategory, setSelectedCategory] =
     useState<keyof typeof productsByCategory>("PIZZAS");
   const [search, setSearch] = useState("");
@@ -179,7 +181,10 @@ export default function Index() {
       >
         <Header onProfilePress={() => router.push("/login")} />
 
-        <TouchableOpacity style={styles.address}>
+        <TouchableOpacity
+          style={styles.address}
+          onPress={() => router.push("/endereco")}
+        >
           <Text style={styles.addressIcon}>📍</Text>
 
           <View>
@@ -188,7 +193,9 @@ export default function Index() {
             </Text>
 
             <Text style={styles.addressText}>
-              Escolha um endereço
+              {selectedAddress
+                ? `${selectedAddress.address} - ${selectedAddress.neighborhood}`
+                : "Escolha um endereço"}
             </Text>
           </View>
 
