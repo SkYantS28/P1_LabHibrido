@@ -24,7 +24,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Erro", "Preencha todos os campos.");
       return;
@@ -37,10 +37,8 @@ export default function Login() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      const success = login(email, password);
-
-      setLoading(false);
+    try {
+      const success = await login(email, password);
 
       if (!success) {
         Alert.alert("Erro", "Não foi possível realizar o login.");
@@ -48,7 +46,11 @@ export default function Login() {
       }
 
       router.replace("/");
-    }, 1000);
+    } catch (error) {
+      Alert.alert("Erro", "Ocorreu um erro ao realizar o login.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

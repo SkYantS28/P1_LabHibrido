@@ -162,12 +162,16 @@ const productsByCategory = {
 export default function Index() {
   const router = useRouter();
   const { selectedAddress } = useAddress();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [selectedCategory, setSelectedCategory] =
     useState<keyof typeof productsByCategory>("PIZZAS");
 
   const [search, setSearch] = useState("");
+
+  if (authLoading) {
+    return null;
+  }
 
   if (!user) {
     return <Redirect href="/login" />;

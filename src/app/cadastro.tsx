@@ -26,7 +26,7 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert("Erro", "Preencha todos os campos.");
       return;
@@ -49,17 +49,18 @@ export default function Cadastro() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      const success = register(
+    try {
+      const success = await register(
         name.trim(),
         email.trim().toLowerCase(),
         password
       );
 
-      setLoading(false);
-
       if (!success) {
-        Alert.alert("Erro", "Não foi possível criar a conta.");
+        Alert.alert(
+          "Erro",
+          "Este e-mail já está cadastrado ou não foi possível criar a conta."
+        );
         return;
       }
 
@@ -73,7 +74,14 @@ export default function Cadastro() {
           },
         ]
       );
-    }, 1000);
+    } catch (error) {
+      Alert.alert(
+        "Erro",
+        "Ocorreu um erro ao criar a conta."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
