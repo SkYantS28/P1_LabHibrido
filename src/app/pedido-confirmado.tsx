@@ -1,14 +1,32 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { useRouter } from "expo-router";
 
 import { COLORS } from "../constants/colors";
 import { useCart } from "../context/CartContext";
+import { useOrders } from "../context/OrdersContext";
 
 export default function PedidoConfirmado() {
     const router = useRouter();
-    const { clearCart } = useCart();
+    const { items, subtotal, clearCart } = useCart();
+    const { addOrder } = useOrders();
+
+    const orderNumber = Date.now().toString().slice(-6);
 
     const handleFinish = () => {
+        addOrder({
+            items: items.map((item) => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+            })),
+            total: subtotal,
+        });
+
         clearCart();
         router.replace("/");
     };
@@ -30,7 +48,7 @@ export default function PedidoConfirmado() {
                 </Text>
 
                 <Text style={styles.number}>
-                    Pedido #345
+                    Pedido #{orderNumber}
                 </Text>
 
                 <Text style={styles.time}>

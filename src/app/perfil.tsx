@@ -58,6 +58,27 @@ export default function Perfil() {
         </View>
 
         <TouchableOpacity
+          style={styles.ordersButton}
+          onPress={() => router.push("/pedidos")}
+        >
+          <View style={styles.ordersContent}>
+            <Text style={styles.ordersIcon}>🛍️</Text>
+
+            <View>
+              <Text style={styles.ordersTitle}>
+                Pedidos feitos
+              </Text>
+
+              <Text style={styles.ordersDescription}>
+                Consulte seu histórico de pedidos
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.ordersArrow}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
         >
@@ -161,6 +182,48 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: COLORS.border,
+  },
+
+  ordersButton: {
+    width: "100%",
+    minHeight: 68,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  ordersContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  ordersIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+
+  ordersTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+
+  ordersDescription: {
+    marginTop: 3,
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+
+  ordersArrow: {
+    fontSize: 28,
+    color: COLORS.textSecondary,
   },
 
   logoutButton: {
