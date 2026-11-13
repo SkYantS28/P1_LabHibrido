@@ -5,21 +5,24 @@ import {
   useEffect,
   useState,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api } from "../services/api";
+import {
+  saveToken,
+  getToken,
+  removeToken,
+  saveCache,
+  getCache,
+} from "../services/storage";
 
 type User = {
   name: string;
   email: string;
-  password: string;
 };
 
-type RegisterResult =
-  | "success"
-  | "duplicate"
-  | "error";
+type RegisterResult = "success" | "duplicate" | "error";
 
 type AuthContextData = {
-  user: Omit<User, "password"> | null;
+  user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (
@@ -30,43 +33,25 @@ type AuthContextData = {
   logout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextData | undefined>(
-  undefined
-);
+const AuthContext = createContext<AuthContextData | undefined>(undefined);
 
-const USERS_STORAGE_KEY = "@veneto_users";
-const CURRENT_USER_STORAGE_KEY = "@veneto_current_user";
+const USER_CACHE_KEY = "@veneto_user";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
-  const [user, setUser] = useState<Omit<User, "password"> | null>(
-    null
-  );
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadAuthData = async () => {
       try {
-        const storedUsers = await AsyncStorage.getItem(
-          USERS_STORAGE_KEY
-        );
+        const token = await getToken();
+        const cachedUser = await getCache<User>(USER_CACHE_KEY);
 
-        const storedCurrentUser = await AsyncStorage.getItem(
-          CURRENT_USER_STORAGE_KEY
-        );
-
-        if (storedUsers) {
-          setRegisteredUsers(JSON.parse(storedUsers));
-        }
-
-        if (storedCurrentUser) {
-          setUser(JSON.parse(storedCurrentUser));
+        if (token && cachedUser) {
+          setUser(cachedUser);
         }
       } catch (error) {
-        console.log(
-          "Erro ao carregar dados de autenticação:",
-          error
-        );
+        console.log("Erro ao carregar sessão:", error);
       } finally {
         setLoading(false);
       }
@@ -80,81 +65,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string
   ): Promise<RegisterResult> => {
-    const normalizedName = name.trim();
-    const normalizedEmail = email.trim().toLowerCase();
-
-    if (!normalizedName || !normalizedEmail || !password) {
-      return "error";
-    }
-
-    const emailAlreadyExists = registeredUsers.some(
-      (registeredUser) =>
-        registeredUser.email.toLowerCase() === normalizedEmail
-    );
-
-    if (emailAlreadyExists) {
-      return "duplicate";
-    }
-
-    const newUser: User = {
-      name: normalizedName,
-      email: normalizedEmail,
-      password,
-    };
-
-    const updatedUsers = [...registeredUsers, newUser];
-
     try {
-      await AsyncStorage.setItem(
-        USERS_STORAGE_KEY,
-        JSON.stringify(updatedUsers)
-      );
-
-      setRegisteredUsers(updatedUsers);
-
+      await api.cadastrar(name, email, password);
       return "success";
-    } catch (error) {
-      console.log("Erro ao salvar usuário:", error);
+    } catch (error: any) {
+      if (error.message?.includes("já cadastrado")) {
+        return "duplicate";
+      }
+      console.log("Erro ao cadastrar:", error);
       return "error";
     }
   };
 
   const login = async (email: string, password: string) => {
-    const normalizedEmail = email.trim().toLowerCase();
-
-    const foundUser = registeredUsers.find(
-      (registeredUser) =>
-        registeredUser.email.toLowerCase() === normalizedEmail &&
-        registeredUser.password === password
-    );
-
-    if (!foundUser) {
-      return false;
-    }
-
-    const loggedUser = {
-      name: foundUser.name,
-      email: foundUser.email,
-    };
-
     try {
-      await AsyncStorage.setItem(
-        CURRENT_USER_STORAGE_KEY,
-        JSON.stringify(loggedUser)
-      );
+      const { token, usuario } = await api.login(email, password);
+
+      const loggedUser: User = {
+        name: usuario.nome,
+        email: usuario.email,
+      };
+
+      await saveToken(token);
+      await saveCache(USER_CACHE_KEY, loggedUser);
 
       setUser(loggedUser);
-
       return true;
     } catch (error) {
-      console.log("Erro ao salvar sessão:", error);
+      console.log("Erro ao fazer login:", error);
       return false;
     }
   };
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem(CURRENT_USER_STORAGE_KEY);
+      await removeToken();
+      await saveCache(USER_CACHE_KEY, null);
       setUser(null);
     } catch (error) {
       console.log("Erro ao sair da conta:", error);
@@ -162,15 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        register,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -180,9 +118,7 @@ export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth deve ser usado dentro de AuthProvider"
-    );
+    throw new Error("useAuth deve ser usado dentro de AuthProvider");
   }
 
   return context;
