@@ -91,7 +91,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(loggedUser);
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      const msg = String(error?.message ?? "");
+
+      if (
+        msg.includes("fetch failed") ||
+        msg.includes("Network request failed") ||
+        msg.includes("Failed to connect")
+      ) {
+        throw new Error("Não foi possível conectar ao servidor");
+      }
+
       console.log("Erro ao fazer login:", error);
       return false;
     }
