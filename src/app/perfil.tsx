@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,15 +12,20 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Perfil() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [loading, user]);
 
   const handleLogout = async () => {
     await logout();
     router.replace("/login");
   };
 
-  if (!user) {
-    router.replace("/login");
+  if (loading || !user) {
     return null;
   }
 
