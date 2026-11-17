@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -81,6 +82,7 @@ export default function Index() {
 
   const [selectedCategory, setSelectedCategory] = useState<string>("PIZZAS");
   const [search, setSearch] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   const { dados: cardapio, loading, erro, recarregar } = useFetch(buscarCardapio);
 
@@ -90,6 +92,12 @@ export default function Index() {
 
   if (!user) {
     return <Redirect href="/login" />;
+  }
+
+  async function aoAtualizar() {
+    setRefreshing(true);
+    await recarregar();
+    setRefreshing(false);
   }
 
   // Estado 1 — carregando
@@ -146,6 +154,14 @@ export default function Index() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={aoAtualizar}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
       >
         <Header
           onFavoritesPress={() => router.push("/favoritos")}
