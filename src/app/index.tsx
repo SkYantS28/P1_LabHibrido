@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,12 +9,12 @@ import {
 } from "react-native";
 import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
-
 import Header from "../components/Header";
 import ProductCard from "../components/ProductCard";
 import { COLORS } from "../constants/colors";
 import { useAddress } from "../context/AddressContext";
 import { useAuth } from "../context/AuthContext";
+import { useFetch } from "../hooks/useFetch";
 
 const categories = [
   "PIZZAS",
@@ -24,150 +25,64 @@ const categories = [
   "BEBIDAS",
 ];
 
-const productsByCategory = {
+type Produto = {
+  name: string;
+  description: string;
+  price: string;
+};
+
+const productsByCategory: Record<string, Produto[]> = {
   PIZZAS: [
-    {
-      name: "4 Queijos",
-      description: "Mussarela, provolone, parmesão e catupiry.",
-      price: "R$ 49,90",
-    },
-    {
-      name: "Alho",
-      description: "Mussarela, alho e temperos especiais.",
-      price: "R$ 42,90",
-    },
-    {
-      name: "Atum",
-      description: "Mussarela, atum, cebola e tomate.",
-      price: "R$ 47,90",
-    },
-    {
-      name: "Bacon",
-      description: "Mussarela, bacon e tomate.",
-      price: "R$ 46,90",
-    },
-    {
-      name: "Calabresa",
-      description: "Mussarela, calabresa e cebola.",
-      price: "R$ 44,90",
-    },
-    {
-      name: "Calabresa com Ovos",
-      description: "Calabresa, ovos, cebola e mussarela.",
-      price: "R$ 48,90",
-    },
+    { name: "4 Queijos", description: "Mussarela, provolone, parmesão e catupiry.", price: "R$ 49,90" },
+    { name: "Alho", description: "Mussarela, alho e temperos especiais.", price: "R$ 42,90" },
+    { name: "Atum", description: "Mussarela, atum, cebola e tomate.", price: "R$ 47,90" },
+    { name: "Bacon", description: "Mussarela, bacon e tomate.", price: "R$ 46,90" },
+    { name: "Calabresa", description: "Mussarela, calabresa e cebola.", price: "R$ 44,90" },
+    { name: "Calabresa com Ovos", description: "Calabresa, ovos, cebola e mussarela.", price: "R$ 48,90" },
   ],
-
   ESFIHAS: [
-    {
-      name: "Carne",
-      description: "Carne temperada, cebola e tomate.",
-      price: "R$ 8,90",
-    },
-    {
-      name: "Queijo",
-      description: "Mussarela e temperos especiais.",
-      price: "R$ 8,90",
-    },
-    {
-      name: "Frango com Catupiry",
-      description: "Frango desfiado e catupiry.",
-      price: "R$ 9,90",
-    },
-    {
-      name: "Calabresa",
-      description: "Calabresa, cebola e mussarela.",
-      price: "R$ 9,90",
-    },
+    { name: "Carne", description: "Carne temperada, cebola e tomate.", price: "R$ 8,90" },
+    { name: "Queijo", description: "Mussarela e temperos especiais.", price: "R$ 8,90" },
+    { name: "Frango com Catupiry", description: "Frango desfiado e catupiry.", price: "R$ 9,90" },
+    { name: "Calabresa", description: "Calabresa, cebola e mussarela.", price: "R$ 9,90" },
   ],
-
   PANQUECAS: [
-    {
-      name: "Panqueca de Carne",
-      description: "Carne moída ao molho de tomate e queijo.",
-      price: "R$ 29,90",
-    },
-    {
-      name: "Panqueca de Frango",
-      description: "Frango desfiado, queijo e molho especial.",
-      price: "R$ 29,90",
-    },
-    {
-      name: "Panqueca de Queijo",
-      description: "Mussarela, molho de tomate e parmesão.",
-      price: "R$ 27,90",
-    },
+    { name: "Panqueca de Carne", description: "Carne moída ao molho de tomate e queijo.", price: "R$ 29,90" },
+    { name: "Panqueca de Frango", description: "Frango desfiado, queijo e molho especial.", price: "R$ 29,90" },
+    { name: "Panqueca de Queijo", description: "Mussarela, molho de tomate e parmesão.", price: "R$ 27,90" },
   ],
-
   MASSAS: [
-    {
-      name: "Espaguete à Bolonhesa",
-      description: "Espaguete com molho de carne e parmesão.",
-      price: "R$ 34,90",
-    },
-    {
-      name: "Fettuccine Alfredo",
-      description: "Massa ao molho cremoso e parmesão.",
-      price: "R$ 36,90",
-    },
-    {
-      name: "Lasanha à Bolonhesa",
-      description: "Massa, carne, molho de tomate e queijo.",
-      price: "R$ 39,90",
-    },
+    { name: "Espaguete à Bolonhesa", description: "Espaguete com molho de carne e parmesão.", price: "R$ 34,90" },
+    { name: "Fettuccine Alfredo", description: "Massa ao molho cremoso e parmesão.", price: "R$ 36,90" },
+    { name: "Lasanha à Bolonhesa", description: "Massa, carne, molho de tomate e queijo.", price: "R$ 39,90" },
   ],
-
   CALDOS: [
-    {
-      name: "Caldo de Aipim",
-      description: "Caldo cremoso de aipim com carne desfiada.",
-      price: "R$ 18,90",
-    },
-    {
-      name: "Caldo Verde",
-      description: "Batata, couve e temperos especiais.",
-      price: "R$ 17,90",
-    },
-    {
-      name: "Caldo de Feijão",
-      description: "Feijão preto temperado com ervas.",
-      price: "R$ 17,90",
-    },
+    { name: "Caldo de Aipim", description: "Caldo cremoso de aipim com carne desfiada.", price: "R$ 18,90" },
+    { name: "Caldo Verde", description: "Batata, couve e temperos especiais.", price: "R$ 17,90" },
+    { name: "Caldo de Feijão", description: "Feijão preto temperado com ervas.", price: "R$ 17,90" },
   ],
-
   BEBIDAS: [
-    {
-      name: "Coca-Cola",
-      description: "Refrigerante Coca-Cola 350 ml.",
-      price: "R$ 6,00",
-    },
-    {
-      name: "Guaraná",
-      description: "Refrigerante Guaraná 350 ml.",
-      price: "R$ 6,00",
-    },
-    {
-      name: "Água Mineral",
-      description: "Água mineral sem gás 500 ml.",
-      price: "R$ 4,00",
-    },
-    {
-      name: "Suco de Laranja",
-      description: "Suco natural de laranja.",
-      price: "R$ 9,90",
-    },
+    { name: "Coca-Cola", description: "Refrigerante Coca-Cola 350 ml.", price: "R$ 6,00" },
+    { name: "Guaraná", description: "Refrigerante Guaraná 350 ml.", price: "R$ 6,00" },
+    { name: "Água Mineral", description: "Água mineral sem gás 500 ml.", price: "R$ 4,00" },
+    { name: "Suco de Laranja", description: "Suco natural de laranja.", price: "R$ 9,90" },
   ],
 };
+
+// Simula a chamada à API devolvendo o cardápio
+async function buscarCardapio(): Promise<Record<string, Produto[]>> {
+  return productsByCategory;
+}
 
 export default function Index() {
   const router = useRouter();
   const { selectedAddress } = useAddress();
   const { user, loading: authLoading } = useAuth();
 
-  const [selectedCategory, setSelectedCategory] =
-    useState<keyof typeof productsByCategory>("PIZZAS");
-
+  const [selectedCategory, setSelectedCategory] = useState<string>("PIZZAS");
   const [search, setSearch] = useState("");
+
+  const { dados: cardapio, loading, erro, recarregar } = useFetch(buscarCardapio);
 
   if (authLoading) {
     return null;
@@ -177,9 +92,49 @@ export default function Index() {
     return <Redirect href="/login" />;
   }
 
-  const products = productsByCategory[selectedCategory].filter((product) => {
-    const searchText = search.toLowerCase();
+  // Estado 1 — carregando
+  if (loading) {
+    return (
+      <View style={styles.centro}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.estadoTexto}>Carregando cardápio...</Text>
+      </View>
+    );
+  }
 
+  // Estado 2 — erro
+  if (erro) {
+    return (
+      <View style={styles.centro}>
+        <Text style={styles.estadoTitulo}>Ops, algo deu errado</Text>
+        <Text style={styles.estadoTexto}>{erro}</Text>
+        <TouchableOpacity style={styles.botao} onPress={recarregar}>
+          <Text style={styles.botaoTexto}>Tentar de novo</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Estado 3 — vazio
+  if (!cardapio || Object.keys(cardapio).length === 0) {
+    return (
+      <View style={styles.centro}>
+        <Text style={styles.estadoTitulo}>Cardápio indisponível</Text>
+        <Text style={styles.estadoTexto}>
+          Nenhum produto encontrado no momento.
+        </Text>
+        <TouchableOpacity style={styles.botao} onPress={recarregar}>
+          <Text style={styles.botaoTexto}>Tentar de novo</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Estado 4 — sucesso
+  const produtosDaCategoria = cardapio[selectedCategory] ?? [];
+
+  const products = produtosDaCategoria.filter((product) => {
+    const searchText = search.toLowerCase();
     return (
       product.name.toLowerCase().includes(searchText) ||
       product.description.toLowerCase().includes(searchText)
@@ -192,11 +147,10 @@ export default function Index() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        
         <Header
-            onFavoritesPress={() => router.push("/favoritos")}
-            onCartPress={() => router.push("/carrinho")}
-            onProfilePress={() => router.push("/perfil")}
+          onFavoritesPress={() => router.push("/favoritos")}
+          onCartPress={() => router.push("/carrinho")}
+          onProfilePress={() => router.push("/perfil")}
         />
 
         <TouchableOpacity
@@ -204,25 +158,19 @@ export default function Index() {
           onPress={() => router.push("/endereco")}
         >
           <Text style={styles.addressIcon}>📍</Text>
-
           <View>
-            <Text style={styles.addressLabel}>
-              ENTREGAR EM
-            </Text>
-
+            <Text style={styles.addressLabel}>ENTREGAR EM</Text>
             <Text style={styles.addressText}>
               {selectedAddress
                 ? `${selectedAddress.address} - ${selectedAddress.neighborhood}`
                 : "Escolha um endereço"}
             </Text>
           </View>
-
           <Text style={styles.arrow}>›</Text>
         </TouchableOpacity>
 
         <View style={styles.searchContainer}>
           <Text style={styles.searchIcon}>⌕</Text>
-
           <TextInput
             style={styles.search}
             placeholder="Buscar no cardápio"
@@ -234,43 +182,22 @@ export default function Index() {
 
         <View style={styles.restaurantInfo}>
           <View style={styles.infoItem}>
-            <Text style={styles.infoValue}>
-              80–90 min
-            </Text>
-
-            <Text style={styles.infoLabel}>
-              Entrega
-            </Text>
+            <Text style={styles.infoValue}>80–90 min</Text>
+            <Text style={styles.infoLabel}>Entrega</Text>
           </View>
-
           <View style={styles.infoDivider} />
-
           <View style={styles.infoItem}>
-            <Text style={styles.infoValue}>
-              ⭐ 4.8
-            </Text>
-
-            <Text style={styles.infoLabel}>
-              20 avaliações
-            </Text>
+            <Text style={styles.infoValue}>⭐ 4.8</Text>
+            <Text style={styles.infoLabel}>20 avaliações</Text>
           </View>
-
           <View style={styles.infoDivider} />
-
           <View style={styles.infoItem}>
-            <Text style={styles.openText}>
-              ABERTO
-            </Text>
-
-            <Text style={styles.infoLabel}>
-              18h–23h
-            </Text>
+            <Text style={styles.openText}>ABERTO</Text>
+            <Text style={styles.infoLabel}>18h–23h</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>
-          Cardápio
-        </Text>
+        <Text style={styles.sectionTitle}>Cardápio</Text>
 
         <ScrollView
           horizontal
@@ -279,19 +206,11 @@ export default function Index() {
         >
           {categories.map((category) => {
             const selected = selectedCategory === category;
-
             return (
               <TouchableOpacity
                 key={category}
-                style={[
-                  styles.category,
-                  selected && styles.categoryActive,
-                ]}
-                onPress={() =>
-                  setSelectedCategory(
-                    category as keyof typeof productsByCategory
-                  )
-                }
+                style={[styles.category, selected && styles.categoryActive]}
+                onPress={() => setSelectedCategory(category)}
               >
                 <Text
                   style={[
@@ -306,32 +225,38 @@ export default function Index() {
           })}
         </ScrollView>
 
-        <Text style={styles.sectionTitle}>
-          {selectedCategory}
-        </Text>
+        <Text style={styles.sectionTitle}>{selectedCategory}</Text>
 
-        <View style={styles.products}>
-          {products.map((product) => (
-            <ProductCard
-              key={product.name}
-              name={product.name}
-              description={product.description}
-              price={product.price}
-              category={selectedCategory}
-              onPress={() =>
-                router.push({
-                  pathname: "/produto",
-                  params: {
-                    name: product.name,
-                    description: product.description,
-                    price: product.price,
-                    category: selectedCategory,
-                  },
-                })
-              }
-            />
-          ))}
-        </View>
+        {products.length === 0 ? (
+          <View style={styles.vazioCategoria}>
+            <Text style={styles.estadoTexto}>
+              Nenhum produto encontrado para "{search}".
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.products}>
+            {products.map((product) => (
+              <ProductCard
+                key={product.name}
+                name={product.name}
+                description={product.description}
+                price={product.price}
+                category={selectedCategory}
+                onPress={() =>
+                  router.push({
+                    pathname: "/produto",
+                    params: {
+                      name: product.name,
+                      description: product.description,
+                      price: product.price,
+                      category: selectedCategory,
+                    },
+                  })
+                }
+              />
+            ))}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -342,12 +267,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-
   content: {
     padding: 24,
     paddingBottom: 40,
   },
-
+  centro: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 32,
+    gap: 12,
+    backgroundColor: COLORS.background,
+  },
+  estadoTitulo: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.text,
+    textAlign: "center",
+  },
+  estadoTexto: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+  },
+  botao: {
+    marginTop: 8,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  botaoTexto: {
+    color: COLORS.white,
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  vazioCategoria: {
+    paddingVertical: 24,
+    alignItems: "center",
+  },
   address: {
     flexDirection: "row",
     alignItems: "center",
@@ -358,31 +316,26 @@ const styles = StyleSheet.create({
     padding: 14,
     marginTop: 24,
   },
-
   addressIcon: {
     fontSize: 22,
     marginRight: 10,
   },
-
   addressLabel: {
     fontSize: 10,
     fontWeight: "700",
     color: COLORS.textSecondary,
   },
-
   addressText: {
     marginTop: 3,
     fontSize: 15,
     fontWeight: "600",
     color: COLORS.text,
   },
-
   arrow: {
     marginLeft: "auto",
     fontSize: 28,
     color: COLORS.textSecondary,
   },
-
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -394,19 +347,16 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingHorizontal: 14,
   },
-
   searchIcon: {
     fontSize: 24,
     color: COLORS.textSecondary,
     marginRight: 8,
   },
-
   search: {
     flex: 1,
     fontSize: 15,
     color: COLORS.text,
   },
-
   restaurantInfo: {
     flexDirection: "row",
     alignItems: "center",
@@ -418,36 +368,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-
   infoItem: {
     alignItems: "center",
     flex: 1,
   },
-
   infoValue: {
     fontSize: 14,
     fontWeight: "700",
     color: COLORS.text,
   },
-
   infoLabel: {
     marginTop: 3,
     fontSize: 11,
     color: COLORS.textSecondary,
   },
-
   openText: {
     fontSize: 14,
     fontWeight: "800",
     color: "#4A7C59",
   },
-
   infoDivider: {
     width: 1,
     height: 32,
     backgroundColor: COLORS.border,
   },
-
   sectionTitle: {
     marginTop: 28,
     marginBottom: 14,
@@ -455,11 +399,9 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: COLORS.text,
   },
-
   categories: {
     paddingRight: 20,
   },
-
   category: {
     paddingHorizontal: 18,
     paddingVertical: 10,
@@ -469,22 +411,18 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     marginRight: 8,
   },
-
   categoryActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
-
   categoryText: {
     fontSize: 13,
     fontWeight: "700",
     color: COLORS.text,
   },
-
   categoryTextActive: {
     color: COLORS.white,
   },
-
   products: {
     gap: 12,
   },
