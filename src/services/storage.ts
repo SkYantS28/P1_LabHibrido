@@ -23,3 +23,19 @@ export async function getCache<T>(key: string): Promise<T | null> {
   const raw = await AsyncStorage.getItem(key);
   return raw ? JSON.parse(raw) : null;
 }
+
+
+export const storage = {
+  async get<T>(chave: string, padrao: T): Promise<T> {
+    try {
+      const bruto = await AsyncStorage.getItem(chave);
+      return bruto !== null ? (JSON.parse(bruto) as T) : padrao;
+    } catch {
+      return padrao;
+    }
+  },
+  async set<T>(chave: string, valor: T) {
+    await AsyncStorage.setItem(chave, JSON.stringify(valor));
+  },
+  remove: (chave: string) => AsyncStorage.removeItem(chave),
+};
