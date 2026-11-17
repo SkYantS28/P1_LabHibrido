@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import {
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -9,10 +10,12 @@ import { useRouter } from "expo-router";
 
 import { COLORS } from "../constants/colors";
 import { useAuth } from "../context/AuthContext";
+import { useTema } from "../context/ThemeContext";
 
 export default function Perfil() {
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { modo, setModo } = useTema();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -61,6 +64,22 @@ export default function Perfil() {
             <Text style={styles.infoLabel}>E-mail</Text>
             <Text style={styles.infoValue}>{user.email}</Text>
           </View>
+        </View>
+
+        <View style={styles.temaCard}>
+          <View>
+            <Text style={styles.temaTitle}>Modo escuro</Text>
+            <Text style={styles.temaDescription}>
+              Sua preferência fica salva no aparelho
+            </Text>
+          </View>
+
+          <Switch
+            value={modo === "escuro"}
+            onValueChange={(v) => setModo(v ? "escuro" : "claro")}
+            trackColor={{ false: COLORS.border, true: COLORS.primary }}
+            thumbColor={COLORS.white}
+          />
         </View>
 
         <TouchableOpacity
@@ -188,6 +207,33 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: COLORS.border,
+  },
+
+  temaCard: {
+    width: "100%",
+    minHeight: 68,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  temaTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: COLORS.text,
+  },
+
+  temaDescription: {
+    marginTop: 3,
+    fontSize: 12,
+    color: COLORS.textSecondary,
   },
 
   ordersButton: {
