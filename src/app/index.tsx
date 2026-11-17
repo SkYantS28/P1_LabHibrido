@@ -1,3 +1,4 @@
+import { comCache } from "../services/cache";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -84,7 +85,9 @@ export default function Index() {
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
 
-  const { dados: cardapio, loading, erro, recarregar } = useFetch(buscarCardapio);
+  const { dados: cardapio, loading, erro, recarregar } = useFetch(() =>
+    comCache("cache:cardapio", buscarCardapio)
+  );
 
   if (authLoading) {
     return null;
