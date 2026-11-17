@@ -17,6 +17,7 @@ import { COLORS } from "../constants/colors";
 import { useAddress } from "../context/AddressContext";
 import { useAuth } from "../context/AuthContext";
 import { useFetch } from "../hooks/useFetch";
+import { useOnline } from "../hooks/useOnline";
 
 const categories = [
   "PIZZAS",
@@ -84,6 +85,8 @@ export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState<string>("PIZZAS");
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+
+  const online = useOnline();
 
   const { dados: cardapio, loading, erro, recarregar } = useFetch(() =>
     comCache("cache:cardapio", buscarCardapio)
@@ -171,6 +174,14 @@ export default function Index() {
           onCartPress={() => router.push("/carrinho")}
           onProfilePress={() => router.push("/perfil")}
         />
+
+        {!online && (
+          <View style={styles.bannerOffline}>
+            <Text style={styles.bannerOfflineTexto}>
+              Você está offline — mostrando dados salvos
+            </Text>
+          </View>
+        )}
 
         <TouchableOpacity
           style={styles.address}
@@ -324,6 +335,21 @@ const styles = StyleSheet.create({
   vazioCategoria: {
     paddingVertical: 24,
     alignItems: "center",
+  },
+  bannerOffline: {
+    backgroundColor: "#FDF3E7",
+    borderWidth: 1,
+    borderColor: "#E8C9A0",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: 16,
+  },
+  bannerOfflineTexto: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#8A5A1F",
+    textAlign: "center",
   },
   address: {
     flexDirection: "row",
