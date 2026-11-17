@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "../services/storage";
 
 export function usePersistedState<T>(chave: string, inicial: T) {
   const [valor, setValor] = useState<T>(inicial);
@@ -8,16 +8,10 @@ export function usePersistedState<T>(chave: string, inicial: T) {
   useEffect(() => {
     let ativo = true;
 
-    AsyncStorage.getItem(chave)
-      .then((bruto) => {
-        if (!ativo) return;
-        if (bruto !== null) {
-          try {
-            setValor(JSON.parse(bruto) as T);
-          } catch {
-            // dado corrompido: mantém o valor inicial
-          }
-        }
+    storage
+      .get<T>(chave, inicial)
+      .then((lido) => {
+        if (ativo) setValor(lido);
       })
       .catch(() => {})
       .finally(() => {
@@ -32,7 +26,7 @@ export function usePersistedState<T>(chave: string, inicial: T) {
   const atualizar = useCallback(
     (novo: T) => {
       setValor(novo);
-      AsyncStorage.setItem(chave, JSON.stringify(novo)).catch(() => {});
+      storage.set(chave, novo).catch(() => {});
     },
     [chave]
   );
