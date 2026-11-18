@@ -2,10 +2,10 @@
 
 Aplicativo mobile de restaurante e pizzaria desenvolvido em **React Native com Expo e TypeScript**, inspirado em um protótipo original criado no Figma.
 
-O projeto foi desenvolvido como atividade acadêmica da disciplina **Aplicativos Híbridos**, com foco na construção de uma aplicação mobile completa, navegação entre telas, gerenciamento de estado, persistência local de dados e implementação de fluxos de autenticação, produtos, favoritos, carrinho, endereços e pedidos.
+O projeto foi desenvolvido como atividade acadêmica da disciplina **Aplicativos Híbridos**, com foco na construção de uma aplicação mobile multiplataforma, navegação entre telas, gerenciamento de estado, consumo de API REST, persistência local de dados e implementação de fluxos de autenticação, produtos, favoritos, carrinho, endereços e pedidos.
 
-> **Status:** Projeto acadêmico / protótipo funcional
-> **Versão:** 1.0.0
+> **Status:** Projeto acadêmico / protótipo funcional  
+> **Versão:** 1.0.0  
 > **Plataforma:** Android / iOS / Web via Expo
 
 ---
@@ -31,15 +31,17 @@ A aplicação permite que o usuário:
 * consulte pedidos realizados;
 * acesse e gerencie seu perfil.
 
-Os dados são armazenados localmente no dispositivo utilizando **AsyncStorage**, permitindo que determinadas informações permaneçam disponíveis entre as sessões do aplicativo.
+O projeto evoluiu de uma aplicação com dados e persistência locais para uma arquitetura que também utiliza **API REST**, com backend independente e autenticação por token JWT.
+
+A persistência no dispositivo utiliza **Expo SecureStore** para o token de autenticação e **AsyncStorage** para preferências e dados de cache.
 
 ---
 
 # 🎓 Contexto acadêmico
 
-**Universidade de Vassouras — Campus Maricá**
-**Curso:** Engenharia de Software
-**Disciplina:** Aplicativos Híbridos
+**Universidade de Vassouras — Campus Maricá**  
+**Curso:** Engenharia de Software  
+**Disciplina:** Aplicativos Híbridos  
 **Projeto:** P1 — Laboratório de Aplicativos Híbridos
 
 O projeto foi desenvolvido a partir de um protótipo visual elaborado no **Figma**, posteriormente transformado em uma aplicação mobile funcional.
@@ -50,7 +52,9 @@ A implementação priorizou:
 * componentização;
 * navegação entre telas;
 * gerenciamento de estado;
+* consumo de API REST;
 * persistência local;
+* armazenamento seguro de sessão;
 * organização de código;
 * experiência de usuário;
 * utilização de TypeScript;
@@ -61,6 +65,8 @@ A implementação priorizou:
 # ✨ Funcionalidades
 
 ## 🔐 Autenticação
+
+A autenticação utiliza uma API REST disponibilizada pelo backend do projeto.
 
 ### Cadastro
 
@@ -73,7 +79,9 @@ O usuário pode criar uma conta informando:
 
 O cadastro possui validações de campos obrigatórios, formato de e-mail, tamanho mínimo da senha e confirmação de senha.
 
-Também existe tratamento para tentativa de cadastro com e-mail já registrado.
+O backend utiliza **bcrypt** para gerar o hash das senhas antes de armazená-las no banco de dados. Dessa forma, as senhas não são armazenadas em texto puro.
+
+Também existe tratamento para tentativas de cadastro com e-mail já registrado.
 
 ### Login
 
@@ -81,12 +89,18 @@ O login realiza:
 
 * validação dos campos;
 * normalização do e-mail;
-* verificação das credenciais;
+* envio das credenciais à API;
+* verificação das credenciais pelo backend;
 * indicador de carregamento;
 * tratamento de credenciais inválidas;
-* persistência da sessão local.
+* recebimento de token JWT;
+* persistência segura da sessão.
 
-Usuários não autenticados são redirecionados para a tela de login.
+O token JWT possui validade de **7 dias**.
+
+O armazenamento do token é realizado pelo **Expo SecureStore**, utilizando os mecanismos de proteção disponibilizados pelo sistema operacional.
+
+Ao reabrir o aplicativo, a sessão é recuperada para manter o usuário autenticado.
 
 ---
 
@@ -114,9 +128,9 @@ O usuário pode:
 
 ### Produtos cadastrados
 
-O protótipo possui produtos de diferentes categorias, incluindo pizzas, esfihas, panquecas, massas, caldos e bebidas.
+O cardápio contempla produtos de diferentes categorias, incluindo pizzas, esfihas, panquecas, massas, caldos e bebidas.
 
-Os dados do cardápio são atualmente definidos no próprio aplicativo, funcionando como dados de demonstração.
+O projeto possui integração com a camada de serviços para obtenção dos dados da API, além de mecanismos de carregamento, tratamento de erros, atualização e cache do cardápio.
 
 ---
 
@@ -153,7 +167,7 @@ O usuário pode:
 * visualizar todos os produtos favoritos;
 * abrir um produto diretamente pela lista de favoritos.
 
-Os favoritos são persistidos localmente através do **AsyncStorage**.
+Os favoritos são gerenciados pelo `FavoritesContext`, com persistência local por meio do **AsyncStorage**.
 
 ---
 
@@ -190,7 +204,9 @@ Funcionalidades:
 * validação dos campos;
 * persistência local.
 
-O projeto também possui dados iniciais de demonstração, como endereço de casa e trabalho.
+O gerenciamento dos endereços é realizado pelo `AddressContext`.
+
+O projeto também pode utilizar dados iniciais de demonstração, como endereço de casa e trabalho.
 
 ---
 
@@ -207,7 +223,9 @@ O histórico permite consultar:
 * preço;
 * total registrado.
 
-Os pedidos são armazenados localmente e o mais recente aparece primeiro na lista.
+O gerenciamento dos pedidos é realizado pelo `OrdersContext`.
+
+As informações mantidas localmente são persistidas no dispositivo. A integração completa do fluxo de pedidos com a API não deve ser considerada concluída enquanto as operações de consulta e criação de pedidos não estiverem conectadas e validadas no backend.
 
 ---
 
@@ -219,7 +237,10 @@ Também permite:
 
 * acessar os pedidos realizados;
 * visualizar informações da conta;
+* alterar o tema do aplicativo;
 * realizar logout.
+
+A preferência de tema é persistida localmente, permitindo manter a escolha entre as sessões.
 
 ---
 
@@ -227,63 +248,68 @@ Também permite:
 
 O projeto possui as seguintes rotas principais:
 
-| Tela        | Rota                 | Função                         |
-| ----------- | -------------------- | ------------------------------ |
-| Login       | `/login`             | Autenticação                   |
-| Cadastro    | `/cadastro`          | Criação de conta               |
-| Início      | `/`                  | Cardápio e navegação principal |
-| Produto     | `/produto`           | Detalhes e personalização      |
-| Favoritos   | `/favoritos`         | Produtos favoritados           |
-| Carrinho    | `/carrinho`          | Produtos selecionados          |
-| Endereços   | `/endereco`          | Gerenciamento de endereços     |
-| Confirmação | `/pedido-confirmado` | Finalização do pedido          |
-| Pedidos     | `/pedidos`           | Histórico de pedidos           |
-| Perfil      | `/perfil`            | Dados e ações da conta         |
+| Tela | Rota | Função |
+|---|---|---|
+| Login | `/login` | Autenticação |
+| Cadastro | `/cadastro` | Criação de conta |
+| Início | `/` | Cardápio e navegação principal |
+| Produto | `/produto` | Detalhes e personalização |
+| Favoritos | `/favoritos` | Produtos favoritados |
+| Carrinho | `/carrinho` | Produtos selecionados |
+| Endereços | `/endereco` | Gerenciamento de endereços |
+| Confirmação | `/pedido-confirmado` | Finalização do pedido |
+| Pedidos | `/pedidos` | Histórico de pedidos |
+| Perfil | `/perfil` | Dados e ações da conta |
 
-A navegação é realizada utilizando **Expo Router**.
+A navegação é realizada utilizando **Expo Router**, com organização das telas por meio do sistema de rotas baseado em arquivos.
 
 ---
 
 # 🏗️ Arquitetura
 
-A estrutura principal do projeto foi organizada por responsabilidade:
+O projeto possui uma organização separada entre o aplicativo mobile e o backend.
+
+A estrutura principal é:
 
 ```text
-src/
-├── app/
-│   ├── _layout.tsx
-│   ├── index.tsx
-│   ├── login.tsx
-│   ├── cadastro.tsx
-│   ├── produto.tsx
-│   ├── favoritos.tsx
-│   ├── carrinho.tsx
-│   ├── endereco.tsx
-│   ├── pedido-confirmado.tsx
-│   ├── pedidos.tsx
-│   └── perfil.tsx
+.
+├── server/
+│   └── ...
 │
-├── components/
-│   ├── CategoryButton.tsx
-│   ├── Header.tsx
-│   └── ProductCard.tsx
+├── src/
+│   ├── app/
+│   ├── components/
+│   ├── constants/
+│   ├── context/
+│   ├── hooks/
+│   └── services/
 │
-├── constants/
-│   └── colors.ts
-│
-└── context/
-    ├── AddressContext.tsx
-    ├── AuthContext.tsx
-    ├── CartContext.tsx
-    ├── FavoritesContext.tsx
-    └── OrdersContext.tsx
+├── app.json
+├── package.json
+├── tsconfig.json
+├── .env
+└── README.md
 ```
 
-### `app/`
+### `server/`
+
+Contém o backend responsável pela API REST.
+
+O servidor utiliza:
+
+* Node.js;
+* Express;
+* SQLite;
+* bcrypt para hash de senhas;
+* JWT para autenticação.
+
+O backend realiza o processamento das operações de autenticação e o armazenamento dos usuários no banco de dados.
+
+### `src/app/`
 
 Contém as telas e rotas da aplicação utilizando o sistema de arquivos do Expo Router.
 
-### `components/`
+### `src/components/`
 
 Contém componentes reutilizáveis da interface, como:
 
@@ -291,7 +317,7 @@ Contém componentes reutilizáveis da interface, como:
 * `ProductCard`;
 * `CategoryButton`.
 
-### `context/`
+### `src/context/`
 
 Centraliza os estados compartilhados da aplicação:
 
@@ -299,11 +325,28 @@ Centraliza os estados compartilhados da aplicação:
 * endereços;
 * carrinho;
 * favoritos;
-* pedidos.
+* pedidos;
+* tema.
 
-### `constants/`
+### `src/hooks/`
 
-Centraliza a identidade visual e as cores utilizadas pela aplicação.
+Contém hooks personalizados para reutilização de lógica:
+
+* `useFetch`;
+* `usePersistedState`;
+* `useOnline`.
+
+### `src/services/`
+
+Centraliza a comunicação com a API e o acesso aos mecanismos de armazenamento:
+
+* `api.ts`;
+* `storage.ts`;
+* `cache.ts`.
+
+### `src/constants/`
+
+Centraliza a identidade visual e as configurações utilizadas pela aplicação.
 
 ---
 
@@ -311,7 +354,7 @@ Centraliza a identidade visual e as cores utilizadas pela aplicação.
 
 O projeto utiliza **React Context API** para compartilhar estados entre diferentes telas.
 
-Foram implementados cinco contextos:
+Foram implementados contextos para as principais funcionalidades da aplicação.
 
 ### `AuthContext`
 
@@ -321,7 +364,8 @@ Responsável por:
 * cadastro;
 * login;
 * logout;
-* sessão.
+* recuperação da sessão;
+* gerenciamento do estado de autenticação.
 
 ### `AddressContext`
 
@@ -361,29 +405,185 @@ Responsável por:
 * criação de novos pedidos;
 * persistência dos pedidos.
 
+### `ThemeContext`
+
+Responsável pelo gerenciamento do tema visual do aplicativo, incluindo a preferência entre os modos claro e escuro.
+
 ---
 
-# 💾 Persistência local
+# 🔌 Integração com API REST
 
-A aplicação utiliza:
+A partir da Aula 9, o projeto passou a utilizar uma API REST para comunicação entre o aplicativo e o backend.
 
-**AsyncStorage**
-
-para armazenar dados localmente no dispositivo.
-
-São utilizadas chaves específicas para diferentes informações, incluindo:
+A comunicação HTTP é centralizada em:
 
 ```text
-@veneto_users
-@veneto_current_user
-@veneto_addresses
-@veneto_selected_address
-@veneto_cart
-@veneto_favorites
-@veneto_orders
+src/services/api.ts
 ```
 
-Isso permite manter dados como sessão, carrinho, favoritos, endereços e pedidos mesmo após o fechamento do aplicativo.
+Essa camada concentra as chamadas à API, a URL base e a configuração dos cabeçalhos HTTP.
+
+Dessa forma, as telas não precisam conhecer diretamente a URL do servidor nem montar manualmente os cabeçalhos das requisições.
+
+### Backend
+
+O backend utiliza **Express** e **SQLite**.
+
+Entre as responsabilidades implementadas estão:
+
+* recebimento das requisições;
+* cadastro de usuários;
+* autenticação;
+* validação de credenciais;
+* armazenamento de usuários;
+* geração de tokens JWT;
+* proteção das senhas com bcrypt.
+
+### Configuração da API
+
+A URL base é configurada por variável de ambiente:
+
+```env
+EXPO_PUBLIC_API_URL=http://192.168.0.10:3000
+```
+
+O endereço deve ser ajustado conforme o ambiente de execução.
+
+---
+
+# 💾 Persistência e armazenamento local
+
+A partir da Aula 10, o projeto passou a utilizar diferentes mecanismos de armazenamento conforme a finalidade dos dados.
+
+## Expo SecureStore
+
+O **Expo SecureStore** é utilizado para armazenar o token JWT.
+
+As operações de armazenamento são centralizadas em:
+
+```text
+src/services/storage.ts
+```
+
+As principais operações são:
+
+* `saveToken`: salva o token;
+* `getToken`: recupera o token;
+* `removeToken`: remove o token.
+
+O SecureStore utiliza os mecanismos de proteção do sistema operacional, como Keychain no iOS e Keystore no Android.
+
+## AsyncStorage
+
+O **AsyncStorage** é utilizado para dados que não exigem o mesmo nível de proteção do token de autenticação.
+
+Entre suas aplicações estão:
+
+* preferências do usuário;
+* tema selecionado;
+* cache do cardápio;
+* outros dados locais.
+
+As operações de armazenamento também são centralizadas em `storage.ts`, evitando que diferentes telas implementem diretamente a lógica de acesso ao disco.
+
+### Camada genérica de armazenamento
+
+A camada de serviços disponibiliza operações genéricas tipadas:
+
+* `storage.get`;
+* `storage.set`;
+* `storage.remove`.
+
+Essas operações facilitam a leitura, gravação e remoção de preferências e dados persistidos.
+
+---
+
+# ⚡ Cache do cardápio
+
+O projeto possui uma camada de cache em:
+
+```text
+src/services/cache.ts
+```
+
+A função `comCache(chave, buscar, ttlMs)` controla a validade dos dados armazenados.
+
+O funcionamento considera:
+
+* consulta ao cache local;
+* verificação do tempo de validade;
+* reutilização de dados ainda válidos;
+* atualização por meio da API quando necessário;
+* utilização de cache antigo quando a API falha e existe uma cópia local disponível.
+
+O cache do cardápio possui validade de **5 minutos**.
+
+Essa estratégia reduz requisições desnecessárias e permite que informações previamente carregadas continuem disponíveis em situações de instabilidade na conexão.
+
+---
+
+# 🪝 Hooks personalizados
+
+O projeto utiliza hooks para separar e reutilizar comportamentos que seriam repetidos em diferentes telas.
+
+### `useFetch`
+
+Responsável por executar funções assíncronas e disponibilizar:
+
+* dados retornados;
+* estado de carregamento;
+* estado de erro;
+* função para recarregar os dados.
+
+É utilizado para controlar os estados da tela inicial durante a obtenção do cardápio.
+
+### `usePersistedState`
+
+Implementa um estado semelhante ao `useState`, mas com persistência local.
+
+Retorna:
+
+```typescript
+[valor, atualizar, pronto]
+```
+
+A propriedade `pronto` indica quando a leitura inicial dos dados armazenados foi concluída, evitando que a interface apresente temporariamente valores iniciais antes de recuperar as preferências salvas.
+
+### `useOnline`
+
+Utiliza o **NetInfo** para acompanhar o estado da conexão do dispositivo.
+
+Retorna um valor booleano que indica se o dispositivo está conectado, permitindo que a aplicação apresente um aviso quando estiver offline.
+
+---
+
+# 🌐 Conectividade e experiência de uso
+
+O aplicativo utiliza **NetInfo** para identificar alterações no estado da conexão.
+
+Quando o dispositivo está sem internet, a aplicação pode apresentar um banner de aviso.
+
+O uso combinado de conectividade e cache permite melhorar a experiência em situações nas quais a rede está indisponível ou instável.
+
+O projeto também implementa:
+
+* estados de carregamento;
+* tratamento de erros;
+* indicação de conteúdo vazio;
+* atualização manual do cardápio por pull-to-refresh;
+* recuperação da sessão antes da definição da rota inicial.
+
+---
+
+# 🚀 Splash Screen e recuperação da sessão
+
+O projeto utiliza **Expo SplashScreen** para controlar a tela de abertura durante a inicialização.
+
+A tela de abertura é mantida enquanto o aplicativo recupera as informações necessárias da sessão armazenada.
+
+Essa abordagem evita que o aplicativo apresente momentaneamente a tela de login antes de identificar que existe uma sessão válida.
+
+O estado de carregamento do `AuthContext` participa desse processo, permitindo que a navegação seja definida após a recuperação da sessão.
 
 ---
 
@@ -398,9 +598,20 @@ Isso permite manter dados como sessão, carrinho, favoritos, endereços e pedido
 * **React**
 * **React Context API**
 
-## Persistência
+## Backend
+
+* **Node.js**
+* **Express**
+* **SQLite**
+* **bcrypt**
+* **JWT**
+
+## Armazenamento e conectividade
 
 * **AsyncStorage**
+* **Expo SecureStore**
+* **NetInfo**
+* **Expo SplashScreen**
 
 ## Desenvolvimento
 
@@ -409,13 +620,6 @@ Isso permite manter dados como sessão, carrinho, favoritos, endereços e pedido
 * **Figma**
 * **Visual Studio Code**
 * **Expo Go**
-
-## Configuração
-
-* Expo SDK 57
-* React Native 0.86.3
-* React 19.2.3
-* TypeScript 6.0.3
 
 ---
 
@@ -449,23 +653,29 @@ O projeto também possui configuração de splash screen e ícones através do E
 
 É necessário ter instalado:
 
-* Node.js
-* npm
-* Expo
-* Expo Go, caso queira executar em dispositivo físico
+* Node.js;
+* npm;
+* Expo;
+* Expo Go, caso queira executar em dispositivo físico.
 
-## Instalação
-
-Clone o repositório:
+## 1. Clonar o repositório
 
 ```bash
 git clone <URL_DO_REPOSITORIO>
 ```
 
-Entre na pasta:
+Entre na pasta do projeto:
 
 ```bash
 cd P1_LabHibrido-main
+```
+
+## 2. Configurar e iniciar o backend
+
+Em um terminal, acesse a pasta do servidor:
+
+```bash
+cd server
 ```
 
 Instale as dependências:
@@ -474,20 +684,55 @@ Instale as dependências:
 npm install
 ```
 
-Inicie o projeto:
+Inicie o servidor:
+
+```bash
+npm run dev
+```
+
+O backend será iniciado conforme a configuração do projeto.
+
+## 3. Configurar o aplicativo
+
+Em outro terminal, retorne à raiz do projeto:
+
+```bash
+cd P1_LabHibrido-main
+```
+
+Instale as dependências do aplicativo:
+
+```bash
+npm install
+```
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+EXPO_PUBLIC_API_URL=http://192.168.0.10:3000
+```
+
+Substitua o IP pelo endereço IPv4 do computador que está executando o backend, caso utilize um dispositivo físico na mesma rede.
+
+### Endereços conforme o ambiente
+
+| Ambiente | URL de exemplo |
+|---|---|
+| Celular físico na mesma rede | `http://192.168.0.10:3000` |
+| Emulador Android | `http://10.0.2.2:3000` |
+| Backend local no computador | `http://localhost:3000` |
+
+O endereço deve ser compatível com o ambiente em que o aplicativo será executado.
+
+## 4. Iniciar o Expo
+
+Na raiz do projeto, execute:
 
 ```bash
 npx expo start
 ```
 
-Depois, é possível:
-
-* escanear o QR Code utilizando o Expo Go;
-* executar no Android;
-* executar no iOS;
-* executar na web.
-
-Também existem os scripts:
+Também podem ser utilizados os scripts disponíveis no `package.json`:
 
 ```bash
 npm run start
@@ -508,56 +753,76 @@ npx expo start
 
 abra o **Expo Go** no dispositivo e escaneie o QR Code exibido pelo Expo.
 
+Para testar as funcionalidades que dependem da API, o backend precisa estar em execução e acessível pelo dispositivo.
+
 ### Fluxo sugerido para demonstração
 
-1. Abrir o aplicativo.
-2. Criar uma conta.
-3. Realizar login.
-4. Navegar pelas categorias.
-5. Pesquisar um produto.
-6. Abrir os detalhes de uma pizza.
-7. Testar tamanho e borda.
-8. Adicionar uma observação.
-9. Adicionar o produto ao carrinho.
-10. Alterar a quantidade.
-11. Adicionar produtos aos favoritos.
-12. Cadastrar ou selecionar um endereço.
-13. Finalizar o pedido.
-14. Consultar o histórico de pedidos.
-15. Acessar o perfil.
-16. Realizar logout.
+1. Iniciar o backend.
+2. Iniciar o aplicativo Expo.
+3. Abrir o aplicativo.
+4. Criar uma conta.
+5. Realizar login.
+6. Fechar e abrir novamente o aplicativo para verificar a recuperação da sessão.
+7. Navegar pelas categorias.
+8. Pesquisar um produto.
+9. Abrir os detalhes de uma pizza.
+10. Testar tamanho e borda.
+11. Adicionar uma observação.
+12. Adicionar o produto ao carrinho.
+13. Alterar a quantidade.
+14. Adicionar produtos aos favoritos.
+15. Cadastrar ou selecionar um endereço.
+16. Finalizar o pedido.
+17. Consultar o histórico de pedidos.
+18. Acessar o perfil.
+19. Alterar o tema.
+20. Realizar logout.
 
 ---
 
 # 🔒 Considerações sobre segurança
 
-Este projeto é um **protótipo acadêmico com persistência local** e não deve ser considerado uma implementação de autenticação para produção.
+O projeto implementa mecanismos de proteção para autenticação e armazenamento de sessão, considerando seu contexto acadêmico.
 
-Por exemplo, as credenciais utilizadas no protótipo são armazenadas localmente através do AsyncStorage. Em uma aplicação real, seria necessário utilizar uma arquitetura de autenticação apropriada, com backend, armazenamento seguro de credenciais e mecanismos de proteção de sessão.
+Entre as medidas implementadas estão:
 
-Também não existe comunicação com um servidor ou banco de dados remoto nesta versão.
+* utilização de bcrypt para gerar hashes das senhas no backend;
+* armazenamento de usuários no banco SQLite;
+* autenticação baseada em token JWT;
+* validade de 7 dias para os tokens;
+* armazenamento do token com Expo SecureStore;
+* centralização das chamadas HTTP;
+* separação entre backend e aplicativo mobile.
+
+O token é armazenado utilizando os mecanismos de proteção disponibilizados pelo sistema operacional.
+
+Apesar dessas medidas, o projeto não deve ser considerado uma arquitetura pronta para produção. Uma aplicação comercial exigiria avaliações adicionais de segurança, incluindo configuração de HTTPS, políticas de expiração e revogação de tokens, proteção contra tentativas abusivas de autenticação, validação de entradas e gerenciamento de permissões.
 
 ---
 
 # ⚠️ Limitações atuais
 
-Por se tratar de um projeto acadêmico e protótipo funcional, algumas funcionalidades foram deliberadamente simplificadas.
+Por se tratar de um projeto acadêmico e protótipo funcional, algumas funcionalidades foram simplificadas.
 
 Atualmente:
 
-* não existe backend;
-* não existe banco de dados remoto;
+* o backend utiliza SQLite;
+* a autenticação é realizada por API REST;
+* o cardápio possui mecanismos de consulta e cache;
+* o cache local possui validade de 5 minutos;
+* a disponibilidade de dados depende da conexão com o backend quando não existe cache válido;
+* o cache antigo pode ser utilizado como alternativa quando a API falha;
+* a taxa de entrega é simulada em R$ 5,00;
 * não existe integração com gateway de pagamento;
 * não existe integração real com serviço de entrega;
-* os produtos são definidos localmente;
 * informações como horário, avaliação e tempo estimado de entrega são dados de demonstração;
-* os endereços iniciais são dados de exemplo;
-* autenticação é local;
+* os endereços são gerenciados localmente;
+* o histórico de pedidos possui gerenciamento local;
+* a integração completa de criação e consulta de pedidos com o backend ainda depende da implementação e validação dessas operações;
 * não há integração com notificações push;
-* pedidos não possuem ciclo completo de atualização de status;
-* dados persistidos não são vinculados a usuários diferentes por meio de uma camada de backend.
+* não existe acompanhamento de pedidos em tempo real.
 
-Essas características fazem parte do escopo do protótipo e não representam uma arquitetura de produção.
+Essas características fazem parte do escopo acadêmico do projeto e não representam uma arquitetura comercial de produção.
 
 ---
 
@@ -565,23 +830,22 @@ Essas características fazem parte do escopo do protótipo e não representam um
 
 Como próximos passos, o projeto poderia evoluir para:
 
-* API REST;
-* backend com Node.js/NestJS;
-* banco de dados PostgreSQL ou MongoDB;
-* autenticação baseada em token;
-* armazenamento seguro de credenciais;
+* integração completa dos pedidos com a API REST;
+* gerenciamento remoto de produtos;
+* banco de dados PostgreSQL;
+* autenticação com renovação de tokens;
 * integração com gateway de pagamento;
 * integração com mapas e geolocalização;
 * cálculo real de entrega;
 * acompanhamento do pedido em tempo real;
 * notificações push;
 * painel administrativo;
-* gerenciamento remoto de produtos;
 * gerenciamento de estoque;
 * avaliações reais;
 * separação dos dados por usuário;
 * testes automatizados;
-* CI/CD.
+* CI/CD;
+* aprimoramento dos mecanismos de segurança.
 
 ---
 
@@ -599,8 +863,18 @@ O projeto demonstra conhecimentos práticos em:
 * criação de componentes reutilizáveis;
 * Context API;
 * gerenciamento de estado;
+* consumo de API REST;
+* integração entre front-end e backend;
+* Express;
+* SQLite;
+* autenticação com JWT;
+* hash de senhas com bcrypt;
 * persistência local;
 * AsyncStorage;
+* Expo SecureStore;
+* cache com validade;
+* hooks personalizados;
+* detecção de conectividade;
 * formulários;
 * validação de dados;
 * manipulação de listas;
@@ -608,7 +882,7 @@ O projeto demonstra conhecimentos práticos em:
 * lógica de carrinho;
 * gerenciamento de favoritos;
 * CRUD local de endereços;
-* fluxo de autenticação;
+* recuperação de sessão;
 * organização de projeto;
 * Git e GitHub;
 * desenvolvimento orientado a uma interface criada no Figma.
@@ -618,6 +892,12 @@ O projeto demonstra conhecimentos práticos em:
 # 📂 Organização do código
 
 Uma das decisões do projeto foi separar responsabilidades em diferentes camadas.
+
+O aplicativo mobile fica organizado em:
+
+```text
+src/
+```
 
 As telas ficam em:
 
@@ -637,10 +917,28 @@ Os estados globais ficam em:
 src/context/
 ```
 
-E a identidade visual fica em:
+Os hooks personalizados ficam em:
+
+```text
+src/hooks/
+```
+
+Os serviços de comunicação e armazenamento ficam em:
+
+```text
+src/services/
+```
+
+A identidade visual fica em:
 
 ```text
 src/constants/
+```
+
+O backend fica separado do aplicativo mobile em:
+
+```text
+server/
 ```
 
 Essa organização facilita a manutenção e permite que funcionalidades sejam modificadas sem concentrar toda a lógica em uma única tela.
@@ -658,16 +956,20 @@ O projeto foi desenvolvido considerando os requisitos propostos para a atividade
 * desenvolvimento de funcionalidades interativas;
 * utilização de componentes;
 * organização do código;
+* gerenciamento de estado;
+* persistência de dados;
+* consumo de API REST;
+* integração com backend;
 * controle de versão através do Git;
 * disponibilização do projeto em repositório GitHub.
 
-O aplicativo ultrapassa o requisito mínimo de telas ao apresentar fluxos independentes para autenticação, cardápio, produto, favoritos, carrinho, endereço, confirmação, pedidos e perfil.
+O aplicativo apresenta fluxos independentes para autenticação, cardápio, produto, favoritos, carrinho, endereço, confirmação, pedidos e perfil, além de integração com serviços externos por meio da API REST desenvolvida para o projeto.
 
 ---
 
 # 👩‍💻 Autoria
 
-**Sky Crizosti**
+**Sky Crizosti**  
 Engenharia de Software — Universidade de Vassouras
 
 **Moizes Baptista da Silva**
@@ -686,4 +988,4 @@ Consulte o arquivo [`LICENSE`](./LICENSE) para obter o texto completo da licenç
 
 ## 🍕 Veneto
 
-Um projeto acadêmico desenvolvido para transformar um protótipo de interface em uma experiência mobile funcional, explorando desenvolvimento híbrido, gerenciamento de estado, persistência local e organização de software.
+Um projeto acadêmico desenvolvido para transformar um protótipo de interface em uma experiência mobile funcional, explorando desenvolvimento híbrido, integração entre aplicativo e backend, autenticação, gerenciamento de estado, persistência local e organização de software.
