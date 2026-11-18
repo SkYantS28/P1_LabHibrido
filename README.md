@@ -826,29 +826,6 @@ Essas características fazem parte do escopo acadêmico do projeto e não repres
 
 ---
 
-# 🔮 Possíveis evoluções
-
-Como próximos passos, o projeto poderia evoluir para:
-
-* integração completa dos pedidos com a API REST;
-* gerenciamento remoto de produtos;
-* banco de dados PostgreSQL;
-* autenticação com renovação de tokens;
-* integração com gateway de pagamento;
-* integração com mapas e geolocalização;
-* cálculo real de entrega;
-* acompanhamento do pedido em tempo real;
-* notificações push;
-* painel administrativo;
-* gerenciamento de estoque;
-* avaliações reais;
-* separação dos dados por usuário;
-* testes automatizados;
-* CI/CD;
-* aprimoramento dos mecanismos de segurança.
-
----
-
 # 📚 Objetivos técnicos demonstrados
 
 O projeto demonstra conhecimentos práticos em:
