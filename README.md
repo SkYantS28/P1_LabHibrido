@@ -973,6 +973,7 @@ O aplicativo apresenta fluxos independentes para autenticação, cardápio, prod
 Engenharia de Software — Universidade de Vassouras
 
 **Moizes Baptista da Silva**
+Engenharia de Software — Universidade de Vassouras
 
 Projeto desenvolvido para fins acadêmicos e de demonstração técnica.
 
